@@ -91,6 +91,7 @@ def instructions():
     text += '\n  "print"    Prints a transcript of your adventure (without extra newline formatting)'
     text += '\n  "help"     Prints these instructions again'
     text += '\n  "censor off/on" to turn censoring off or on.'
+    text += '\n  "ping off/on" to turn playing a ping sound when the AI responds off or on.'
     text += '\n  "infto ##" to set a timeout for the AI to respond.'
     text += '\n  "temp #"   Changes the AI\'s temperature (higher temperature = less focused). Default is 4.'
     text += '\n  "remember XXX" to commit something important to the AI\'s memory for that session.'
@@ -106,6 +107,7 @@ def play_aidungeon_2():
     )
 
     upload_story = True
+    ping = False
 
     print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
     generator = GPT2Generator()
@@ -171,6 +173,12 @@ def play_aidungeon_2():
 
             elif action == "censor on":
                 generator.censor = True
+                
+            elif action == "ping off":
+                ping = False
+
+            elif action == "ping on":
+                ping = True
 
             elif action == "save":
                 if upload_story:
@@ -259,7 +267,8 @@ def play_aidungeon_2():
                         continue
                 except NameError:
                     pass
-                playsound('ping.mp3')
+                if ping:
+                    playsound('ping.mp3')
 
                 continue
 
@@ -328,7 +337,8 @@ def play_aidungeon_2():
 
                 else:
                     console_print(result)
-                playsound('ping.mp3')
+                if ping:
+                    playsound('ping.mp3')
                 story_manager.generator.generate_num = story_manager.generator.default_gen_num
 
 
