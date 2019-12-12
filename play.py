@@ -5,6 +5,7 @@ import time
 from generator.gpt2.gpt2_generator import *
 from story.story_manager import *
 from story.utils import *
+from playsound import playsound
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -258,6 +259,7 @@ def play_aidungeon_2():
                         continue
                 except NameError:
                     pass
+                playsound('ping.mp3')
 
                 continue
 
@@ -326,6 +328,7 @@ def play_aidungeon_2():
 
                 else:
                     console_print(result)
+                playsound('ping.mp3')
                 story_manager.generator.generate_num = story_manager.generator.default_gen_num
 
 
