@@ -91,7 +91,7 @@ def instructions():
     text += '\n  "print"    Prints a transcript of your adventure (without extra newline formatting)'
     text += '\n  "help"     Prints these instructions again'
     text += '\n  "censor off/on" to turn censoring off or on.'
-    text += '\n  "ping off/on" to turn playing a ping sound when the AI responds off or on.'
+    text += '\n  "ping off/on" to turn playing a ping sound when the AI responds off or on. (not compatible with Colab)'
     text += '\n  "infto ##" to set a timeout for the AI to respond.'
     text += '\n  "temp #"   Changes the AI\'s temperature (higher temperature = less focused). Default is 4.'
     text += '\n  "remember XXX" to commit something important to the AI\'s memory for that session.'
