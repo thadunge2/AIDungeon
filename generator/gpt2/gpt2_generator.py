@@ -95,9 +95,7 @@ class GPT2Generator:
 
     def generate_raw(self, prompt):
         while len(prompt) > 3500:
-            split_prompt = prompt.split(">")
-            expendable_text = ">".join(split_prompt[2:])
-            prompt = split_prompt[0] + ">" + expendable_text
+            prompt = self.cut_down_prompt(prompt)
         context_tokens = self.enc.encode(prompt)
         generated = 0
         for _ in range(self.samples // self.batch_size):
@@ -112,7 +110,7 @@ class GPT2Generator:
                 text = self.enc.decode(out[i])
         return text
 
-    def generate(self, prompt, options=None, seed=1):
+    def generate(self, prompt, options=None, seed=1, depth=1):
 
         debug_print = False
         prompt = self.prompt_replace(prompt)
@@ -129,7 +127,12 @@ class GPT2Generator:
 
         result = text
         result = self.result_replace(result)
-        if len(result) == 0:
-            return self.generate(prompt)
+        if len(result) == 0 and depth < 20:
+            return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
 
         return result
+        
+    def cut_down_prompt(self, prompt):
+        split_prompt = prompt.split(">")
+        expendable_text = ">".join(split_prompt[2:])
+        return split_prompt[0] + ">" + expendable_text
