@@ -143,8 +143,6 @@ class GPT2Generator:
         
     def change_temp(self, t):
         self.temp = t
-        self.gen_output()
         
     def change_topk(self, t):
         self.top_k = t
-        self.gen_output()
