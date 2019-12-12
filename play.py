@@ -93,6 +93,7 @@ def instructions():
     text += '\n  "print"          Prints a transcript of your adventure (without extra newline'
     text += '\n                   formatting)'
     text += '\n  "help"           Prints these instructions again'
+    text += '\n  "showstats"      Prints the current game settings'
     text += '\n  "censor off/on"  Turn censoring off or on.'
     text += '\n  "ping off/on"    Turn playing a ping sound when the AI responds off or on.'
     text += '\n                   (not compatible with Colab)'
@@ -180,6 +181,14 @@ def play_aidungeon_2():
 
             elif action == "help":
                 console_print(instructions())
+
+            elif action == "showstats":
+                text =    "nosaving is set to:    " + str(not upload_story) 
+                text += "\nping is set to:        " + str(ping) 
+                text += "\ncensor is set to:      " + str(generator.censor) 
+                text += "\ntemperature is set to: " + str(story_manager.generator.temp) 
+                text += "\ntop_k is set to:       " + str(story_manager.generator.top_k) 
+                print(text) 
 
             elif action == "censor off":
                 generator.censor = False
