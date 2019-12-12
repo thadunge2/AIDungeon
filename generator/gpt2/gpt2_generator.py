@@ -25,15 +25,11 @@ class GPT2Generator:
         self.model_dir = "generator/gpt2/models"
         self.checkpoint_path = os.path.join(self.model_dir, self.model_name)
 
-        models_dir = os.path.expanduser(os.path.expandvars(self.model_dir))
         self.batch_size = 1
         self.samples = 1
 
+        models_dir = os.path.expanduser(os.path.expandvars(self.model_dir))
         self.enc = encoder.get_encoder(self.model_name, models_dir)
-        hparams = model.default_hparams()
-        with open(os.path.join(models_dir, self.model_name, "hparams.json")) as f:
-            hparams.override_from_dict(json.load(f))
-        seed = np.random.randint(0, 100000)
 
         config = tf.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
@@ -42,15 +38,7 @@ class GPT2Generator:
         self.context = tf.placeholder(tf.int32, [self.batch_size, None])
         # np.random.seed(seed)
         # tf.set_random_seed(seed)
-        self.output = sample.sample_sequence(
-            hparams=hparams,
-            length=self.generate_num,
-            context=self.context,
-            batch_size=self.batch_size,
-            temperature=temperature,
-            top_k=top_k,
-            top_p=top_p,
-        )
+        self.gen_output()
 
         saver = tf.train.Saver()
         ckpt = tf.train.latest_checkpoint(os.path.join(models_dir, self.model_name))
@@ -136,3 +124,27 @@ class GPT2Generator:
         split_prompt = prompt.split(">")
         expendable_text = ">".join(split_prompt[2:])
         return split_prompt[0] + ">" + expendable_text
+        
+    def gen_output(self):
+        models_dir = os.path.expanduser(os.path.expandvars(self.model_dir))
+        hparams = model.default_hparams()
+        with open(os.path.join(models_dir, self.model_name, "hparams.json")) as f:
+            hparams.override_from_dict(json.load(f))
+        seed = np.random.randint(0, 100000)
+        self.output = sample.sample_sequence(
+            hparams=hparams,
+            length=self.generate_num,
+            context=self.context,
+            batch_size=self.batch_size,
+            temperature=self.temp,
+            top_k=self.top_k,
+            top_p=self.top_p,
+        )
+        
+    def change_temp(self, t):
+        self.temp = temp
+        gen_output()
+        
+    def change_topk(self, t):
+        self.top_k = t
+        gen_output()
