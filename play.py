@@ -94,6 +94,7 @@ def instructions():
     text += '\n  "ping off/on" to turn playing a ping sound when the AI responds off or on. (not compatible with Colab)'
     text += '\n  "infto ##" to set a timeout for the AI to respond.'
     text += '\n  "temp #"   Changes the AI\'s temperature (higher temperature = less focused). Default is 4.'
+    text += '\n  "topk ##"  Changes the AI\'s top_k (higher top_k = bigger memorized vocabulary). Default is 80.'
     text += '\n  "remember XXX" to commit something important to the AI\'s memory for that session.'
     return text
 
@@ -234,10 +235,23 @@ def play_aidungeon_2():
             elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'temp':
 
                 try:
-                    story_manager.generator.temp = float(action.split(" ")[1])/10
+                    console_print("Regenerating model, please wait...")
+                    story_manager.generator.set_temp(float(action.split(" ")[1])/10)
+                    story_manager.generator.gen_output()
                     console_print("Set temp to {}".format(story_manager.generator.temp))
                 except:
                     console_print("Failed to set temperature. Example usage: temp 4")
+                    continue
+                
+            elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'topk':
+
+                try:
+                    console_print("Regenerating model, please wait...")
+                    story_manager.generator.set_topk(int(action.split(" ")[1]))
+                    story_manager.generator.gen_output()
+                    console_print("Set top_k to {}".format(story_manager.generator.top_k))
+                except:
+                    console_print("Failed to set top_k. Example usage: topk 80")
                     continue
                 
             elif len(action.split(" ")) > 1 and action.split(" ")[0] == 'remember':
