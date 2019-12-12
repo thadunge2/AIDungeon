@@ -80,7 +80,9 @@ def select_game():
 def instructions():
     text = "\nAI Dungeon 2 Instructions:"
     text += '\n Enter actions starting with a verb ex. "go to the tavern" or "attack the orc."'
-    text += '\n To speak enter \'say "(thing you want to say)"\' or just "(thing you want to say)" '
+    text += '\n To speak enter \'say "(thing you want to say)"\' or just "(thing you want '
+    text += '\n to say)" If you want something to happen or be done by someone else, enter '
+    text += '\n \'!(thing you want to happen) ex. "!A dragon swoops down and eats Sir Theo."'
     text += "\n\nThe following commands can be entered for any action: "
     text += '\n  "revert"   Reverts the last action allowing you to pick a different action.'
     text += '\n  "retry"    Reverts the last action and tries again with the same action.'
@@ -93,7 +95,7 @@ def instructions():
     text += '\n  "censor off/on" to turn censoring off or on.'
     text += '\n  "ping off/on" to turn playing a ping sound when the AI responds off or on. (not compatible with Colab)'
     text += '\n  "infto ##" to set a timeout for the AI to respond.'
-    text += '\n  "temp #"   Changes the AI\'s temperature (higher temperature = less focused). Default is 4.'
+    text += '\n  "temp #.#" Changes the AI\'s temperature (higher temperature = less focused). Default is 0.4.'
     text += '\n  "topk ##"  Changes the AI\'s top_k (higher top_k = bigger memorized vocabulary). Default is 80.'
     text += '\n  "remember XXX" to commit something important to the AI\'s memory for that session.'
     return text
@@ -130,6 +132,12 @@ def play_aidungeon_2():
         if splash_choice == "new":
             print("\n\n")
             context, prompt = select_game()
+            change_config = input("Would you like to enter a new temp and top_k now? (default: 0.4, 80) (y/N) ")
+            if change_config.lower() == "y":
+                story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ")))
+                story_manager.generator.change_topk(int(input("Enter a new top_k (default 80): ")))
+                console_print("Please wait while the AI model is regenerated...")
+                story_manager.generator.gen_output()
             console_print(instructions())
             print("\nGenerating story...")
             story_manager.generator.generate_num = 120
@@ -233,18 +241,18 @@ def play_aidungeon_2():
                     continue
                 
             elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'temp':
-
+            
                 try:
                     console_print("Regenerating model, please wait...")
-                    story_manager.generator.change_temp(float(action.split(" ")[1])/10)
+                    story_manager.generator.change_temp(float(action.split(" ")[1]))
                     story_manager.generator.gen_output()
                     console_print("Set temp to {}".format(story_manager.generator.temp))
                 except:
-                    console_print("Failed to set temperature. Example usage: temp 4")
+                    console_print("Failed to set temperature. Example usage: temp 0.4")
                     continue
                 
             elif len(action.split(" ")) == 2 and action.split(" ")[0] == 'topk':
-
+            
                 try:
                     console_print("Regenerating model, please wait...")
                     story_manager.generator.change_topk(int(action.split(" ")[1]))
@@ -289,14 +297,11 @@ def play_aidungeon_2():
             else:
                 if action == "":
                     action = ""
-
-                #elif action[0] == '"':
-                #    action = "You say " + action
                     
                 elif action[0] == '!':
                     action = "\n" + action[1:].replace("\\n", "\n") + "\n"
 
-                else:
+                elif action[0] != '"':
                     action = action.strip()
                     if "You" not in action[:6] and "I" not in action[:6]:
                         action = "You " + action
