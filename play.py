@@ -79,11 +79,16 @@ def select_game():
 
 def instructions():
     text = "\nAI Dungeon 2 Instructions:"
-    text += '\n Enter actions starting with a verb ex. "go to the tavern" or "attack the orc."'
-    text += '\n To speak enter \'say "(thing you want to say)"\' or just "(thing you want '
-    text += '\n to say)" If you want something to happen or be done by someone else, enter '
-    text += '\n \'!(thing you want to happen) ex. "!A dragon swoops down and eats Sir Theo."'
-    text += "\n\nThe following commands can be entered for any action: "
+    text += '\n Enter actions starting with a verb ex. "go to the tavern" or "attack the orc"'
+    text += '\n'
+    text += '\n To speak enter \'say "(thing you want to say)"\''
+    text += '\n or just "(thing you want to say)"'
+    text += '\n'
+    text += '\n If you want something to happen or be done by someone else, enter '
+    text += '\n \'!(thing you want to happen)'
+    text += '\n ex. "!A dragon swoops down and eats Sir Theo."'
+    text += '\n'
+    text += "\nThe following commands can be entered for any action: "
     text += '\n  "revert"         Reverts the last action allowing you to pick a different action.'
     text += '\n  "retry"          Reverts the last action and tries again with the same action.'
     text += '\n  "quit"           Quits the game and saves'
