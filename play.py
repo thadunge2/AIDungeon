@@ -91,8 +91,7 @@ def instructions():
 	  text += '\n  "cloud"          Turns on cloud saving when you use the "save" command'
     text += '\n  "save"           Makes a new save of your game and gives you the save ID'
     text += '\n  "load"           Asks for a save ID and loads the game if the ID is valid'
-    text += '\n  "print"          Prints a transcript of your adventure (without extra newline'
-    text += '\n                   formatting)'
+    text += '\n  "print"          Prints a transcript of your adventure'
     text += '\n  "help"           Prints these instructions again'
     text += '\n  "showstats"      Prints the current game settings'
     text += '\n  "censor off/on"  Turn censoring off or on.'
@@ -243,8 +242,12 @@ def play_aidungeon_2():
                 console_print(result)
 
             elif action == "print":
-                print("\nPRINTING\n")
-                print(str(story_manager.story))
+                line_break = input("Format output with extra newline? (y/n)\n> ") 
+                print("\nPRINTING\n") 
+                if line_break == "y": 
+                    console_print(str(story_manager.story)) 
+                else: 
+                    print(str(story_manager.story)) 
 
             elif action == "revert":
 
