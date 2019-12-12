@@ -236,7 +236,7 @@ def play_aidungeon_2():
 
                 try:
                     console_print("Regenerating model, please wait...")
-                    story_manager.generator.set_temp(float(action.split(" ")[1])/10)
+                    story_manager.generator.change_temp(float(action.split(" ")[1])/10)
                     story_manager.generator.gen_output()
                     console_print("Set temp to {}".format(story_manager.generator.temp))
                 except:
@@ -247,7 +247,7 @@ def play_aidungeon_2():
 
                 try:
                     console_print("Regenerating model, please wait...")
-                    story_manager.generator.set_topk(int(action.split(" ")[1]))
+                    story_manager.generator.change_topk(int(action.split(" ")[1]))
                     story_manager.generator.gen_output()
                     console_print("Set top_k to {}".format(story_manager.generator.top_k))
                 except:
