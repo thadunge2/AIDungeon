@@ -330,7 +330,7 @@ def play_aidungeon_2():
 
                     action = first_to_second_person(action)
 
-                    action = "\n> " + action + "\n"
+                    action = "\n" + action + "\n"
 
                 if "say" in action or "ask" in action or "\"" in action:
                     story_manager.generator.generate_num = 120
