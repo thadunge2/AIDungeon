@@ -79,26 +79,35 @@ def select_game():
 
 def instructions():
     text = "\nAI Dungeon 2 Instructions:"
-    text += '\n Enter actions starting with a verb ex. "go to the tavern" or "attack the orc."'
-    text += '\n To speak enter \'say "(thing you want to say)"\' or just "(thing you want '
-    text += '\n to say)" If you want something to happen or be done by someone else, enter '
-    text += '\n \'!(thing you want to happen) ex. "!A dragon swoops down and eats Sir Theo."'
-    text += "\n\nThe following commands can be entered for any action: "
-    text += '\n  "revert"   Reverts the last action allowing you to pick a different action.'
-    text += '\n  "retry"    Reverts the last action and tries again with the same action.'
-    text += '\n  "quit"     Quits the game and saves'
-    text += '\n  "restart"  Starts a new game and saves your current one'
-    text += '\n  "cloud"    Turns on cloud saving when you use the "save" command'
-    text += '\n  "save"     Makes a new save of your game and gives you the save ID'
-    text += '\n  "load"     Asks for a save ID and loads the game if the ID is valid'
-    text += '\n  "print"    Prints a transcript of your adventure (without extra newline formatting)'
-    text += '\n  "help"     Prints these instructions again'
-    text += '\n  "censor off/on" to turn censoring off or on.'
-    text += '\n  "ping off/on" to turn playing a ping sound when the AI responds off or on. (not compatible with Colab)'
-    text += '\n  "infto ##" to set a timeout for the AI to respond.'
-    text += '\n  "temp #.#" Changes the AI\'s temperature (higher temperature = less focused). Default is 0.4.'
-    text += '\n  "topk ##"  Changes the AI\'s top_k (higher top_k = bigger memorized vocabulary). Default is 80.'
-    text += '\n  "remember XXX" to commit something important to the AI\'s memory for that session.'
+    text += '\n Enter actions starting with a verb ex. "go to the tavern" or "attack the orc"'
+    text += '\n'
+    text += '\n To speak enter \'say "(thing you want to say)"\''
+    text += '\n or just "(thing you want to say)"'
+    text += '\n'
+    text += '\n If you want something to happen or be done by someone else, enter '
+    text += '\n \'!(thing you want to happen)'
+    text += '\n ex. "!A dragon swoops down and eats Sir Theo."'
+    text += '\n'
+    text += "\nThe following commands can be entered for any action: "
+    text += '\n  "revert"         Reverts the last action allowing you to pick a different action.'
+    text += '\n  "retry"          Reverts the last action and tries again with the same action.'
+    text += '\n  "quit"           Quits the game and saves'
+    text += '\n  "restart"        Starts a new game and saves your current one'
+    text += '\n  "cloud"          Turns on cloud saving when you use the "save" command'
+    text += '\n  "save"           Makes a new save of your game and gives you the save ID'
+    text += '\n  "load"           Asks for a save ID and loads the game if the ID is valid'
+    text += '\n  "print"          Prints a transcript of your adventure'
+    text += '\n  "help"           Prints these instructions again'
+    text += '\n  "showstats"      Prints the current game settings'
+    text += '\n  "censor off/on"  Turn censoring off or on.'
+    text += '\n  "ping off/on"    Turn playing a ping sound when the AI responds off or on.'
+    text += '\n                   (not compatible with Colab)'
+    text += '\n  "infto ##"       Set a timeout for the AI to respond.'
+    text += '\n  "temp #.#"       Changes the AI\'s temperature'
+    text += '\n                   (higher temperature = less focused). Default is 0.4.'
+    text += '\n  "topk ##"        Changes the AI\'s top_k'
+    text += '\n                   (higher top_k = bigger memorized vocabulary). Default is 80.'
+    text += '\n  "remember XXX"   Commit something important to the AI\'s memory for that session.'
     return text
 
 
@@ -186,6 +195,14 @@ def play_aidungeon_2():
             elif action == "help":
                 console_print(instructions())
 
+            elif action == "showstats":
+                text =    "nosaving is set to:    " + str(not upload_story) 
+                text += "\nping is set to:        " + str(ping) 
+                text += "\ncensor is set to:      " + str(generator.censor) 
+                text += "\ntemperature is set to: " + str(story_manager.generator.temp) 
+                text += "\ntop_k is set to:       " + str(story_manager.generator.top_k) 
+                print(text) 
+
             elif action == "censor off":
                 generator.censor = False
 
@@ -230,8 +247,12 @@ def play_aidungeon_2():
                 console_print(result)
 
             elif action == "print":
-                print("\nPRINTING\n")
-                print(str(story_manager.story))
+                line_break = input("Format output with extra newline? (y/n)\n> ") 
+                print("\nPRINTING\n") 
+                if line_break == "y": 
+                    console_print(str(story_manager.story)) 
+                else: 
+                    print(str(story_manager.story)) 
 
             elif action == "revert":
 
