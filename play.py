@@ -149,8 +149,12 @@ def play_aidungeon_2():
             story_manager.generator.generate_num = story_manager.generator.default_gen_num
 
         else:
-            load_ID = input("What is the ID of the saved game? ")
-            result = story_manager.load_new_story(load_ID)
+            load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")
+            if load_ID.startswith("gs://"):
+                result = story_manager.load_new_story(load_ID[5:], True)
+                story_manager.story.cloud = True
+            else:
+                result = story_manager.load_new_story(load_ID)
             print("\nLoading Game...\n")
             print(result)
 
@@ -173,6 +177,10 @@ def play_aidungeon_2():
                 upload_story = False
                 story_manager.story.upload_story = False
                 console_print("Saving turned off.")
+
+            elif action == "cloud":
+                story_manager.story.cloud = True
+                console_print("Cloud saving turned on.")
 
             elif action == "help":
                 console_print(instructions())
@@ -201,14 +209,22 @@ def play_aidungeon_2():
                     console_print("Saving has been turned off. Cannot save.")
 
             elif action == "load":
-                load_ID = input("What is the ID of the saved game?")
-                result = story_manager.story.load_from_storage(load_ID)
+                load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")
+                if load_ID.startswith("gs://"):
+                    story_manager.story.cloud = True
+                    result = story_manager.story.load_from_storage(load_ID[5:])
+                else:
+                    result = story_manager.story.load_from_storage(load_ID)
                 console_print("\nLoading Game...\n")
                 console_print(result)
 
             elif len(action.split(" ")) == 2 and action.split(" ")[0] == "load":
                 load_ID = action.split(" ")[1]
-                result = story_manager.story.load_from_storage(load_ID)
+                if load_ID.startswith("gs://"):
+                    story_manager.story.cloud = True
+                    result = story_manager.story.load_from_storage(load_ID[5:])
+                else:
+                    result = story_manager.story.load_from_storage(load_ID)
                 console_print("\nLoading Game...\n")
                 console_print(result)
 
