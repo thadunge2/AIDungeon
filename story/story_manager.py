@@ -9,7 +9,7 @@ from story.utils import *
 
 class Story:
     def __init__(
-        self, story_start, context="", seed=None, game_state=None, upload_story=False
+        self, story_start, context="", seed=None, game_state=None, upload_story=False, cloud=False
     ):
         self.story_start = story_start
         self.context = context
@@ -32,6 +32,7 @@ class Story:
             game_state = dict()
         self.game_state = game_state
         self.memory = 20
+        self.cloud = cloud
 
     def __del__(self):
         if self.upload_story:
@@ -130,18 +131,21 @@ class Story:
         f.close()
 
         FNULL = open(os.devnull, "w")
-        '''p = Popen(
-            ["gsutil", "cp", file_name, "gs://aidungeonstories"],
-            stdout=FNULL,
-            stderr=subprocess.STDOUT,
-        )'''
+        if self.cloud:
+            p = Popen(
+                ["gsutil", "cp", file_name, "gs://aidungeonstories"],
+                stdout=FNULL,
+                stderr=subprocess.STDOUT,
+            )
         return self.uuid
 
     def load_from_storage(self, story_id):
 
         file_name = os.path.join("saves", "story" + story_id + ".json")
-        #cmd = "gsutil cp gs://aidungeonstories/" + file_name + " ."
-        #os.system(cmd)
+        if self.cloud:
+            file_name = "story" + story_id + ".json"
+            cmd = "gsutil cp gs://aidungeonstories/" + file_name + " ."
+            os.system(cmd)
         exists = os.path.isfile(file_name)
 
         if exists:
@@ -172,10 +176,12 @@ class StoryManager:
         )
         return self.story
 
-    def load_new_story(self, story_id):
+    def load_new_story(self, story_id, cloud=False):
         file_name = os.path.join("saves","story" + story_id + ".json")
-        #cmd = "gsutil cp gs://aidungeonstories/" + file_name + " ."
-        #os.system(cmd)
+        if cloud:
+            file_name = "story" + story_id + ".json"
+            cmd = "gsutil cp gs://aidungeonstories/" + file_name + " ."
+            os.system(cmd)
         exists = os.path.isfile(file_name)
 
         if exists:
