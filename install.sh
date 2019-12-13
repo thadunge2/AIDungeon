@@ -2,8 +2,7 @@
 cd "$(dirname "${0}")"
 BASE_DIR="$(pwd)"
 
-MODELS_DIRECTORY=generator/gpt2
-#/models
+MODELS_DIRECTORY=generator/gpt2/models
 MODEL_VERSION=model_v5
 MODEL_NAME=model-550
 MODEL_TORRENT_URL="https://github.com/AIDungeon/AIDungeon/files/3935881/model_v5.torrent.zip"
@@ -17,13 +16,11 @@ else
     apt-get install aria2 unzip > /dev/null
     
     echo "Downloading AIDungeon2 Model... (this may take a very, very long time)"
-    #mkdir -p "${MODELS_DIRECTORY}"
+    mkdir -p "${MODELS_DIRECTORY}"
     cd "${MODELS_DIRECTORY}"
-    python download_model.py 1558M
-    mv models/1558M models/model_v5
-    #mkdir "${MODEL_VERSION}"
-    #wget "${MODEL_TORRENT_URL}"
-    #unzip "${MODEL_TORRENT_BASENAME}"
+    mkdir "${MODEL_VERSION}"
+    wget "${MODEL_TORRENT_URL}"
+    unzip "${MODEL_TORRENT_BASENAME}"
     echo -e "\n\n==========================================="
     echo "We are now starting to download the model."
     echo "It will take a while to get up to speed."
