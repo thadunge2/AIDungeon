@@ -144,8 +144,8 @@ def play_aidungeon_2():
             context, prompt = select_game()
             change_config = input("Would you like to enter a new temp and top_k now? (default: 0.4, 80) (y/N) ")
             if change_config.lower() == "y":
-                story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ")))
-                story_manager.generator.change_topk(int(input("Enter a new top_k (default 80): ")))
+                story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ") or 0.4))
+                story_manager.generator.change_topk(int(input("Enter a new top_k (default 80): ") or 80))
                 console_print("Please wait while the AI model is regenerated...")
                 story_manager.generator.gen_output()
             console_print(instructions())
@@ -324,9 +324,6 @@ def play_aidungeon_2():
                         console_print(story_manager.story.results[-1])
                     except FunctionTimedOut:
                         console_print("That input caused the model to hang (timeout is {}, use infto ## command to change)".format(story_manager.inference_timeout))
-                        if ping:
-                            playsound('ping.mp3')
-                        continue
                 except NameError:
                     pass
                 if ping:
