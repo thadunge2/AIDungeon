@@ -36,16 +36,24 @@ def select_game():
     choice = get_num_options(len(settings) + 1)
 
     if choice == len(settings):
- 
+
+        context = ""
         console_print(
-            "\nEnter a few sentences that describe who you are and the setting of the story "
+            "\n(optional, can be left blank) Enter a prompt that describes who you are and what are your goals. The AI will "
+            "always remember this prompt and will use it for context, ex:\n 'Your name is John Doe. You are a knight in "
+            "the kingdom of Larion. You were sent by the king to track down and slay an evil dragon.'\n"
         )
-        context = input("Context: ")
-        context = context + " "
+        context = input("Story Context: ")
+        if len(context) > 0 and not context.endswith(" "):
+            context = context + " "
+
         console_print(
-            "\nEnter a prompt that describes how your story starts out "
+            "\nNow enter a prompt that describes the start of your story. This comes after the Story Context and will give the AI "
+            "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'After arriving "
+            "at the forest, it turns out the evil dragon is actually a pretty cute monster girl. You decide you're going to lay "
+            "this dragon instead.'"
         )
-        prompt = input("Prompt: ")
+        prompt = input("Starting Prompt: ")
         return context, prompt
 
     print("\nPick a character")
