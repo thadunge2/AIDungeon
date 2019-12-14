@@ -144,8 +144,8 @@ def play_aidungeon_2():
             context, prompt = select_game()
             change_config = input("Would you like to enter a new temp and top_k now? (default: 0.4, 80) (y/N) ")
             if change_config.lower() == "y":
-                story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ")))
-                story_manager.generator.change_topk(int(input("Enter a new top_k (default 80): ")))
+                story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ") or 0.4))
+                story_manager.generator.change_topk(int(input("Enter a new top_k (default 80): ") or 80))
                 console_print("Please wait while the AI model is regenerated...")
                 story_manager.generator.gen_output()
             console_print(instructions())
