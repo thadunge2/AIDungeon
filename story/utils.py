@@ -113,9 +113,9 @@ def cut_trailing_action(text):
         or "you ask" in last_para.lower()
     ) and len(last_para) > 1:
         last_para = last_para[:-1]
-    lines[-1] = ".".join(last_para)
+    lines[-1] = ".".join(last_para) + "."
     text = "\n".join(lines)
-    return text + "."
+    return text
 
 
 def cut_trailing_sentence(text):
