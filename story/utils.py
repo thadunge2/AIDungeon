@@ -103,30 +103,38 @@ def split_first_sentence(text):
 
 
 def cut_trailing_action(text):
+    print("Before: {}".format(text))
     lines = text.split("\n")
-    last_para = lines[-1].split(".")
+    last_para = re.findall(".+?(?:\.{1,3}|[!\?]|$)", lines[-1])
+    if len(last_para) < 1:
+        return ""
     last_line = last_para[-1].rstrip()
     if (
         "you ask" in last_line.lower()
-    ) and len(last_para) > 1:
-        last_para = last_para[:-1]
-    lines[-1] = ".".join(last_para) + "."
+    ):
+        if len(last_para) > 1:
+            last_para = last_para[:-1]
+            lines[-1] = " ".join(last_para)
+        else:
+            lines = lines[:-1]
     text = "\n".join(lines)
+    print("After: {}".format(text))
     return text
 
 
 def cut_trailing_sentence(text):
     text = standardize_punctuation(text)
-    last_punc = max(text.rfind("."), text.rfind("!"), text.rfind("?"))
+    last_punc = max(text.rfind(".")+1, text.rfind("!"), text.rfind("?"))
     if last_punc <= 0:
         last_punc = len(text) - 1
 
     et_token = text.find("<")
-    if et_token > 0:
+    if et_token >= 0:
         last_punc = min(last_punc, et_token - 1)
 
     act_token = text.find(">")
-    if act_token > 0:
+    print(last_punc,act_token)
+    if act_token >= 0:
         last_punc = min(last_punc, act_token - 1)
 
     text = text[:last_punc]
