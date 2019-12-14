@@ -103,7 +103,6 @@ def split_first_sentence(text):
 
 
 def cut_trailing_action(text):
-    print("Before: {}".format(text))
     lines = text.split("\n")
     last_para = re.findall(".+?(?:\.{1,3}|[!\?]|$)", lines[-1])
     if len(last_para) < 1:
@@ -118,7 +117,6 @@ def cut_trailing_action(text):
         else:
             lines = lines[:-1]
     text = "\n".join(lines)
-    print("After: {}".format(text))
     return text
 
 
@@ -133,7 +131,6 @@ def cut_trailing_sentence(text):
         last_punc = min(last_punc, et_token - 1)
 
     act_token = text.find(">")
-    print(last_punc,act_token)
     if act_token >= 0:
         last_punc = min(last_punc, act_token - 1)
 
