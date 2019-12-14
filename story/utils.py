@@ -109,7 +109,7 @@ def cut_trailing_action(text):
     last_para = lines[-1].split(".")
     last_line = last_para[-1].rstrip()
     if (
-        "you ask" in last_para.lower()
+        "you ask" in last_line.lower()
     ) and len(last_para) > 1:
         last_para = last_para[:-1]
     lines[-1] = ".".join(last_para) + "."
