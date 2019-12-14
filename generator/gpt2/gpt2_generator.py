@@ -47,18 +47,25 @@ class GPT2Generator:
     def prompt_replace(self, prompt):
         # print("\n\nBEFORE PROMPT_REPLACE:")
         # print(repr(prompt))
-        prompt = prompt.rstrip()
+        prompt = prompt.replace('."', '".')
+        prompt = prompt.replace("#", "")
+        prompt = prompt.replace("*", "")
+        prompt = prompt.replace("\n\n", "\n")
+        prompt = prompt.replace("..", ".")
+        prompt = prompt.rstrip(" ")
         # prompt = second_to_first_person(prompt)
 
         # print("\n\nAFTER PROMPT_REPLACE")
         # print(repr(prompt))
         return prompt
 
-    def result_replace(self, result):
+    def result_replace(self, result, actions):
         # print("\n\nBEFORE RESULT_REPLACE:")
         # print(repr(result))
-
         result = cut_trailing_sentence(result)
+        print(actions)
+        for sentence in actions:
+            result = result.replace(sentence.strip()+" ", "")
         if len(result) == 0:
             return ""
         first_letter_capitalized = result[0].isupper()
@@ -101,6 +108,7 @@ class GPT2Generator:
 
         debug_print = False
         prompt = self.prompt_replace(prompt)
+        last_prompt = prompt[prompt.rfind(">")+2:]
 
         if debug_print:
             print("******DEBUG******")
@@ -113,8 +121,9 @@ class GPT2Generator:
             print("******END DEBUG******")
 
         result = text
-        result = self.result_replace(result)
-        if len(result) == 0 and depth < 20:
+        print("Last prompt: {}".format(last_prompt))
+        result = self.result_replace(result, re.findall(".+?(?:\.{1,3}|[!\?]|$)", last_prompt))
+        if (len(result) == 0 or result.count(".") < 3) and depth < 20:
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
 
         return result
