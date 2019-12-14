@@ -51,7 +51,7 @@ class GPT2Generator:
         prompt = prompt.replace("#", "")
         prompt = prompt.replace("*", "")
         prompt = prompt.replace("\n\n", "\n")
-        prompt = prompt.replace("..", ".")
+        prompt = re.sub("(?<=\w)\.\.(?:\s|$)", ".", prompt)
         prompt = prompt.rstrip(" ")
         # prompt = second_to_first_person(prompt)
 
@@ -72,7 +72,7 @@ class GPT2Generator:
         result = result.replace("#", "")
         result = result.replace("*", "")
         result = result.replace("\n\n", "\n")
-        result = result.replace("..", ".")
+        result = re.sub("(?<=\w)\.\.(?:\s|$)", ".", result)
         # result = first_to_second_person(result)
         if self.censor:
             result = remove_profanity(result)
