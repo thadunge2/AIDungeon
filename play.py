@@ -55,6 +55,8 @@ def select_game():
         )
         prompt = input("Starting Prompt: ")
         return context, prompt
+    
+    setting_key = list(settings)[choice]
 
     print("\nPick a character")
     characters = data["settings"][setting_key]["characters"]
