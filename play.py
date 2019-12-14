@@ -37,13 +37,13 @@ def select_game():
 
     if choice == len(settings):
 
+        context = ""
         console_print(
             "\nEnter a prompt that describes who you are and the first couple sentences of where you start "
             "out ex:\n 'You are a knight in the kingdom of Larion. You are hunting the evil dragon who has been "
             + "terrorizing the kingdom. You enter the forest searching for the dragon and see' "
         )
         prompt = input("Starting Prompt: ")
-        context = prompt
         return context, prompt
 
     setting_key = list(settings)[choice]
