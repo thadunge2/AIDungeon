@@ -69,7 +69,7 @@ class Story:
     def latest_result(self):
 
         mem_ind = self.memory
-        if len(self.results) < 2:
+        if len(self.results) < 5:
             latest_result = self.story_start
         else:
             latest_result = self.context
