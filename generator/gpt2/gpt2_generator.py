@@ -47,9 +47,7 @@ class GPT2Generator:
     def prompt_replace(self, prompt):
         # print("\n\nBEFORE PROMPT_REPLACE:")
         # print(repr(prompt))
-        if len(prompt) > 0 and prompt[-1] == " ":
-            prompt = prompt[:-1]
-
+        prompt = prompt.rstrip()
         # prompt = second_to_first_person(prompt)
 
         # print("\n\nAFTER PROMPT_REPLACE")
@@ -68,6 +66,7 @@ class GPT2Generator:
         result = result.replace("#", "")
         result = result.replace("*", "")
         result = result.replace("\n\n", "\n")
+        result = result.replace("..", ".")
         # result = first_to_second_person(result)
         if self.censor:
             result = remove_profanity(result)
