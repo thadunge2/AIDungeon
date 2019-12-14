@@ -104,8 +104,6 @@ def split_first_sentence(text):
 
 def cut_trailing_action(text):
     lines = text.split("\n")
-    for i in range(len(lines)):
-        lines[i] += "\n"
     last_para = lines[-1].split(".")
     last_line = last_para[-1].rstrip()
     if (
