@@ -63,7 +63,7 @@ class GPT2Generator:
         # print("\n\nBEFORE RESULT_REPLACE:")
         # print(repr(result))
         result = cut_trailing_sentence(result)
-        print(actions)
+        # print(actions)
         for sentence in actions:
             result = result.replace(sentence.strip()+" ", "")
         if len(result) == 0:
@@ -121,7 +121,7 @@ class GPT2Generator:
             print("******END DEBUG******")
 
         result = text
-        print("Last prompt: {}".format(last_prompt))
+        # print("Last prompt: {}".format(last_prompt))
         result = self.result_replace(result, re.findall(".+?(?:\.{1,3}|[!\?]|$)", last_prompt))
         if (len(result) == 0 or result.count(".") < 3) and depth < 20:
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
