@@ -337,7 +337,7 @@ def play_aidungeon_2():
                     action = ""
                     
                 elif action[0] == '!':
-                    action = "\n" + action[1:].replace("\\n", "\n") + "\n"
+                    action = "> \n" + action[1:].replace("\\n", "\n") + "\n"
 
                 elif action[0] != '"':
                     action = action.strip()
