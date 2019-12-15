@@ -113,6 +113,7 @@ def instructions():
     text += "\nThe following commands can be entered for any action: "
     text += '\n  "/revert"         Reverts the last action allowing you to pick a different action.'
     text += '\n  "/retry"          Reverts the last action and tries again with the same action.'
+    text += '\n  "/alter"          Edit the most recent AI response'
     text += '\n  "/quit"           Quits the game and saves'
     text += '\n  "/restart"        Starts a new game and saves your current one'
     text += '\n  "/cloud"          Turns on cloud saving when you use the "save" command'
@@ -314,7 +315,18 @@ def play_aidungeon_2():
                     else:
                         console_print(story_manager.story.story_start)
                     continue
-                
+
+                elif command == "alter": 
+                    if len(story_manager.story.results) is 0: 
+                        console_print("There's no results to alter.\n") 
+                        continue 
+     
+                    console_print("\nThe AI thinks this was what happened:\n") 
+                    print(story_manager.story.results[-1]) 
+                    result = input("\nWhat actually happened was (use \\n for new line):\n\n") 
+                    result = result.replace("\\n", "\n") 
+                    story_manager.story.results[-1] = result 
+
                 elif command == "infto":
 
                     if len(args) != 1:
