@@ -262,7 +262,17 @@ def play_aidungeon_2():
                 if line_break == "y": 
                     console_print(str(story_manager.story)) 
                 else: 
-                    print(str(story_manager.story)) 
+                    print(str(story_manager.story))
+                    
+            elif action == "alter":
+                if len(story_manager.story.results) is 0:
+                    console_print("There's no results to alter. \n")
+                    continue
+                
+                story_manager.story.results = story_manager.story.results[:-1]
+                result = input("Write what really happened (use # for new line). \n")
+                result = result.replace('#','\n')
+                story_manager.story.results.append(result)
 
             elif action == "revert":
 
