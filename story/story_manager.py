@@ -166,7 +166,7 @@ class StoryManager:
         )
         return str(self.story)
 
-    def load_new_story(self, story_id, cloud=False):
+    def load_new_story(self, story_id, upload_story=False, cloud=False):
         file_name = os.path.join("saves","story" + story_id + ".json")
         if cloud:
             file_name = "story" + story_id + ".json"

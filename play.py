@@ -184,10 +184,10 @@ def play_aidungeon_2():
             else:
                 load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")
                 if load_ID.startswith("gs://"):
-                    result = story_manager.load_new_story(load_ID[5:], True)
+                    result = story_manager.load_new_story(load_ID[5:], upload_story=upload_story, cloud=True)
                     story_manager.story.cloud = True
                 else:
-                    result = story_manager.load_new_story(load_ID)
+                    result = story_manager.load_new_story(load_ID, upload_story=upload_story)
                 print("\nLoading Game...\n")
                 print(result)
 
