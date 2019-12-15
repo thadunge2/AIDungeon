@@ -41,6 +41,19 @@ def select_game():
 
         context = ""
         console_print(
+            "\n(optional, can be left blank) Enter a prompt that describes who you are and what are your goals. The AI will "
+            "always remember this prompt and will use it for context, ex:\n 'Your name is John Doe. You are a knight in "
+            "the kingdom of Larion. You were sent by the king to track down and slay an evil dragon.'\n"
+        )
+        context = input("Story Context: ")
+        if len(context) > 0 and not context.endswith(" "):
+            context = context + " "
+
+        console_print(
+            "\nNow enter a prompt that describes the start of your story. This comes after the Story Context and will give the AI "
+            "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'After arriving "
+            "at the forest, it turns out the evil dragon is actually a pretty cute monster girl. You decide you're going to lay "
+            "this dragon instead.'"
             "\nEnter a prompt that describes who you are and the first couple sentences of where you start "
             "out ex:\n 'You are a knight in the kingdom of Larion. You are hunting the evil dragon who has been "
             + "terrorizing the kingdom. You enter the forest searching for the dragon and see' "
