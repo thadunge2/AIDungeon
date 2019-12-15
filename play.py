@@ -186,6 +186,16 @@ def play_aidungeon_2():
                 rating_float = float(rating)
                 story_manager.story.rating = rating_float
                 break
+                
+              elif action == "alter":
+                if len(story_manager.story.results) is 0:
+                    console_print("There's no results to alter. \n")
+                    continue
+                
+                story_manager.story.results = story_manager.story.results[:-1]
+                result = input("Write what really happened (use # for new line). \n")
+                result = result.replace('#','\n')
+                story_manager.story.results.append(result)
 
             elif action == "quit":
                 rating = input("Please rate the story quality from 1-10: ")
