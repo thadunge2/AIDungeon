@@ -127,7 +127,7 @@ class Story:
         return self.uuid
 
     def load_from_storage(self, story_id):
-        save_path = "./saved_stories/"
+        save_path = "./saves/"
 
         if not os.path.exists(save_path):
             return "Error save not found."
