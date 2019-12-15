@@ -184,10 +184,10 @@ def play_aidungeon_2():
             else:
                 load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")
                 if load_ID.startswith("gs://"):
-                    result = story_manager.load_new_story(load_ID[5:], True)
+                    result = story_manager.load_new_story(load_ID[5:], upload_story=upload_story, cloud=True)
                     story_manager.story.cloud = True
                 else:
-                    result = story_manager.load_new_story(load_ID)
+                    result = story_manager.load_new_story(load_ID, upload_story=upload_story)
                 print("\nLoading Game...\n")
                 print(result)
 
@@ -284,15 +284,6 @@ def play_aidungeon_2():
                         console_print(f"To load the game, type 'load' and enter the following ID: {id}")
                     else:
                         console_print("Saving has been turned off. Cannot save.")
-
-                elif command == "load":
-                    if len(args) == 0:
-                        load_ID = input("What is the ID of the saved game?")
-                    else:
-                        load_ID = args[0]
-                    result = story_manager.story.load_from_storage(load_ID)
-                    console_print("\nLoading Game...\n")
-                    console_print(result)
 
                 elif command == "print":
                     line_break = input("Format output with extra newline? (y/n)\n> ") 
@@ -391,6 +382,8 @@ def play_aidungeon_2():
                             console_print(story_manager.story.results[-1])
                         except FunctionTimedOut:
                             console_print("That input caused the model to hang (timeout is {}, use infto ## command to change)".format(story_manager.inference_timeout))
+                            if ping:
+                                playsound('ping.mp3')
                     except NameError:
                         pass
                     if ping:
