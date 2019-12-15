@@ -210,6 +210,11 @@ class UnconstrainedStoryManager(StoryManager):
     def generate_result(self, action):
         block = self.generator.generate(self.story_context() + action)
         return block
+		
+    def set_context(self, context):
+        self.story.context = context
+    def get_context(self):
+        return self.story.context		
 
 
 class ConstrainedStoryManager(StoryManager):
