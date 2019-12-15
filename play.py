@@ -285,15 +285,6 @@ def play_aidungeon_2():
                     else:
                         console_print("Saving has been turned off. Cannot save.")
 
-                elif command == "load":
-                    if len(args) == 0:
-                        load_ID = input("What is the ID of the saved game?")
-                    else:
-                        load_ID = args[0]
-                    result = story_manager.story.load_from_storage(load_ID)
-                    console_print("\nLoading Game...\n")
-                    console_print(result)
-
                 elif command == "print":
                     line_break = input("Format output with extra newline? (y/n)\n> ") 
                     print("\nPRINTING\n") 
