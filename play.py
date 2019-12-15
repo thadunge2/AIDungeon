@@ -198,7 +198,7 @@ def play_aidungeon_2():
                 story_manager.story.upload_story = False
                 console_print("Saving turned off.")
    
-              elif action == "alter":
+            elif action == "alter":
                 if len(story_manager.story.results) is 0:
                     console_print("There's no results to alter. \n")
                     continue
