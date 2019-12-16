@@ -399,9 +399,6 @@ def play_aidungeon_2():
                     story_manager.set_context(new_context)
                     console_print("Story context updated.\n")
 
-                else:
-                    console_print(f"Unknown command: {command}")
-
                 elif command == 'editcontext':
                     try:
                         current_context = story_manager.get_context()
@@ -453,6 +450,9 @@ def play_aidungeon_2():
                     except:
                         console_print("Something went wrong, cancelling.")
                         pass
+
+                else:
+                    console_print(f"Unknown command: {command}")
 
             else:
                 if action == "":
