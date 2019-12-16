@@ -67,7 +67,6 @@ class Story:
         self.results.append(story_block)
 
     def latest_result(self):
-
         mem_ind = self.memory
         if len(self.results) < 5:
             latest_result = self.story_start
@@ -79,7 +78,6 @@ class Story:
                 latest_result += self.actions[-mem_ind] + self.results[-mem_ind]
 
             mem_ind -= 1
-
         return latest_result
 
     def __str__(self):
@@ -105,51 +103,43 @@ class Story:
 
         return json.dumps(story_dict)
 
-    def save_to_local(self, save_name):
-        self.uuid = str(uuid.uuid1())
-        story_json = self.to_json()
-        file_name = "AIDungeonSave_" + save_name + ".json"
-        f = open(file_name, "w")
-        f.write(story_json)
-        f.close()
-
-    def load_from_local(self, save_name):
-        file_name = "AIDungeonSave_" + save_name + ".json"
-        print("Save ID that can be used to load game is: ", self.uuid)
-
-        with open(file_name, "r") as fp:
-            game = json.load(fp)
-        self.init_from_dict(game)
-
     def save_to_storage(self):
         self.uuid = str(uuid.uuid1())
 
+        save_path = "./saves/"
+
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
         story_json = self.to_json()
         file_name = "story" + str(self.uuid) + ".json"
-        f = open(os.path.join("saves", file_name), "w")
+        f = open(os.path.join(save_path, file_name), "w")
         f.write(story_json)
         f.close()
 
         FNULL = open(os.devnull, "w")
         if self.cloud:
             p = Popen(
-                ["gsutil", "cp", file_name, "gs://aidungeonstories"],
+                ["gsutil", "cp", os.path.join(save_path, file_name), "gs://aidungeonstories"],
                 stdout=FNULL,
                 stderr=subprocess.STDOUT,
             )
         return self.uuid
 
     def load_from_storage(self, story_id):
+        save_path = "./saves/"
 
-        file_name = os.path.join("saves", "story" + story_id + ".json")
+        if not os.path.exists(save_path):
+            return "Error save not found."
+
+        file_name = "story" + story_id + ".json"
         if self.cloud:
-            file_name = "story" + story_id + ".json"
-            cmd = "gsutil cp gs://aidungeonstories/" + file_name + " ."
+            cmd = "gsutil cp gs://aidungeonstories/" + file_name + " " + save_path
             os.system(cmd)
-        exists = os.path.isfile(file_name)
+        exists = os.path.isfile(os.path.join(save_path, file_name))
 
         if exists:
-            with open(file_name, "r") as fp:
+            with open(os.path.join(save_path, file_name), "r") as fp:
                 game = json.load(fp)
             self.init_from_dict(game)
             return str(self)
@@ -174,9 +164,9 @@ class StoryManager:
             game_state=game_state,
             upload_story=upload_story,
         )
-        return self.story
+        return str(self.story)
 
-    def load_new_story(self, story_id, cloud=False):
+    def load_new_story(self, story_id, upload_story=False, cloud=False):
         file_name = os.path.join("saves","story" + story_id + ".json")
         if cloud:
             file_name = "story" + story_id + ".json"
@@ -184,14 +174,14 @@ class StoryManager:
             os.system(cmd)
         exists = os.path.isfile(file_name)
 
-        if exists:
-            with open(file_name, "r") as fp:
-                game = json.load(fp)
-            self.story = Story("")
-            self.story.init_from_dict(game)
-            return str(self.story)
-        else:
-            return "Error: save not found."
+        if not exists:
+            return "Error save not found."
+
+        with open(file_name, "r") as fp:
+            game = json.load(fp)
+        self.story = Story("", upload_story=upload_story)
+        self.story.init_from_dict(game)
+        return str(self.story)
 
     def load_story(self, story, from_json=False):
         if from_json:
@@ -210,7 +200,6 @@ class StoryManager:
 
 class UnconstrainedStoryManager(StoryManager):
     def act(self, action_choice):
-        
         result = self.generate_result(action_choice)
         self.story.add_to_story(action_choice, result)
         return result
@@ -221,6 +210,11 @@ class UnconstrainedStoryManager(StoryManager):
     def generate_result(self, action):
         block = self.generator.generate(self.story_context() + action)
         return block
+		
+    def set_context(self, context):
+        self.story.context = context
+    def get_context(self):
+        return self.story.context		
 
 
 class ConstrainedStoryManager(StoryManager):
