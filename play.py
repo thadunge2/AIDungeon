@@ -131,6 +131,7 @@ def instructions():
     text += '\n  "/topk ##"        Changes the AI\'s top_k'
     text += '\n                   (higher top_k = bigger memorized vocabulary). Default is 80.'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
+    text += '\n  "/context"        Rewrites everything your AI has currently committed to memory.'
     return text
 
 
@@ -390,6 +391,13 @@ def play_aidungeon_2():
                         playsound('ping.mp3')
 
                     continue
+
+                elif command == "context":
+                    console_print("Current story context: \n" + story_manager.get_context() + "\n")
+                    new_context = input("Enter a new context describing the general status of your character and story: ")
+                    story_manager.set_context(new_context)
+                    console_print("Story context updated.\n")
+
                 else:
                     console_print(f"Unknown command: {command}")
 
