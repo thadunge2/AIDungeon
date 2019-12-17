@@ -46,7 +46,7 @@ def random_story(story_data):
     # random name
     name = grammars.direct(setting_key, "fantasy_name")
 
-    return False, setting_key, character_key, name, None, None
+    return setting_key, character_key, name
 
 
 def select_game():
@@ -60,48 +60,50 @@ def select_game():
     choice = get_num_options(2)
 
     if choice == 0:
-        return random_story(data)
+        setting_key, character_key, name = random_story(data)
 
-    # User-selected story...
-    print("\n\nPick a setting.")
-    settings = data["settings"].keys()
-    for i, setting in enumerate(settings):
-        print_str = str(i) + ") " + setting
-        if setting == "fantasy":
-            print_str += " (recommended)"
+    else:
+        # User-selected story...
+        print("\n\nPick a setting.")
+        settings = data["settings"].keys()
+        for i, setting in enumerate(settings):
+            print_str = str(i) + ") " + setting
+            if setting == "fantasy":
+                print_str += " (recommended)"
 
-        console_print(print_str)
-    console_print(str(len(settings)) + ") custom")
-    choice = get_num_options(len(settings) + 1)
+            console_print(print_str)
+        console_print(str(len(settings)) + ") custom")
+        choice = get_num_options(len(settings) + 1)
 
-    if choice == len(settings):
+        if choice == len(settings):
 
-        context = ""
-        console_print(
-            "\n(optional, can be left blank) Enter a prompt that describes who you are and what are your goals. The AI will "
-            "always remember this prompt and will use it for context, ex:\n 'Your name is John Doe. You are a knight in "
-            "the kingdom of Larion. You were sent by the king to track down and slay an evil dragon.'\n"
-        )
-        context = input("Story Context: ")
-        if len(context) > 0 and not context.endswith(" "):
-            context = context + " "
+            context = ""
+            console_print(
+                "\n(optional, can be left blank) Enter a prompt that describes who you are and what are your goals. The AI will "
+                "always remember this prompt and will use it for context, ex:\n 'Your name is John Doe. You are a knight in "
+                "the kingdom of Larion. You were sent by the king to track down and slay an evil dragon.'\n"
+            )
+            context = input("Story Context: ")
+            if len(context) > 0 and not context.endswith(" "):
+                context = context + " "
 
-        console_print(
-            "\nNow enter a prompt that describes the start of your story. This comes after the Story Context and will give the AI "
-            "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'You enter the forest searching for the dragon and see' "
-        )
-        prompt = input("Starting Prompt: ")
-        return True, None, None, None, context, prompt
+            console_print(
+                "\nNow enter a prompt that describes the start of your story. This comes after the Story Context and will give the AI "
+                "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'You enter the forest searching for the dragon and see' "
+            )
+            prompt = input("Starting Prompt: ")
+            return True, None, None, None, context, prompt
 
-    setting_key = list(settings)[choice]
+        setting_key = list(settings)[choice]
 
-    print("\nPick a character")
-    characters = data["settings"][setting_key]["characters"]
-    for i, character in enumerate(characters):
-        console_print(str(i) + ") " + character)
-    character_key = list(characters)[get_num_options(len(characters))]
+        print("\nPick a character")
+        characters = data["settings"][setting_key]["characters"]
+        for i, character in enumerate(characters):
+            console_print(str(i) + ") " + character)
+        character_key = list(characters)[get_num_options(len(characters))]
 
-    name = input("\nWhat is your name? ")
+        name = input("\nWhat is your name? ")
+
     setting_description = data["settings"][setting_key]["description"]
     character = data["settings"][setting_key]["characters"][character_key]
 
