@@ -132,6 +132,7 @@ def instructions():
     text += '\n                   (higher top_k = bigger memorized vocabulary). Default is 80.'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
     text += '\n  "/context"        Rewrites everything your AI has currently committed to memory.'
+    text += '\n  "/editcontext     Lets you rewrite specific parts of the context.'
     return text
 
 
@@ -397,6 +398,58 @@ def play_aidungeon_2():
                     new_context = input("Enter a new context describing the general status of your character and story: ")
                     story_manager.set_context(new_context)
                     console_print("Story context updated.\n")
+
+                elif command == 'editcontext':
+                    try:
+                        current_context = story_manager.get_context()
+                        current_context = current_context.strip()
+                        context_list = current_context.split(".")
+
+                        if context_list[-1] == "":
+                            del context_list[-1]
+
+                        for i in range(len(context_list)):
+                            context_list[i] = context_list[i].strip()
+
+                        console_print("Current story context:\n" + current_context + "\n")
+                        console_print("0) Remove a sentence\n1) Edit a sentence\n2) Add a new sentence\n3) Cancel\n")
+                        choice = get_num_options(4)
+
+                        if choice == 0:
+                            console_print("Pick a sentence to remove:\n")
+                            for i in range(len(context_list)):
+                                console_print(str(i) + ") " + context_list[i])
+                            choice = get_num_options(len(context_list))
+                            del context_list[choice]
+                        elif choice == 1:
+                            console_print("Pick a sentence to edit:\n")
+                            for i in range(len(context_list)):
+                                console_print(str(i) + ") " + context_list[i])
+                            choice = get_num_options(len(context_list))
+                            console_print(context_list[choice])
+                            context_list[choice] = input("\nWrite the new sentence:\n")
+                        elif choice == 2:
+                            context_list.append(input("Write a new sentence:\n"))
+                        else:
+                            console_print("Cancelled.\n")
+                            continue
+
+                        current_context = ""
+                        for i in range(len(context_list)):
+                            if context_list[i] == "":
+                                continue
+                            if context_list[i][-1] == ".":
+                                context_list[i] = context_list[i] + " "
+                            elif context_list[i][-1] != " ":
+                                context_list[i] = context_list[i] + ". "
+                            current_context = current_context + context_list[i]
+                        current_context = current_context.strip()
+                        story_manager.set_context(current_context)
+                        console_print("Story context updated.\n")
+
+                    except:
+                        console_print("Something went wrong, cancelling.")
+                        pass
 
                 else:
                     console_print(f"Unknown command: {command}")
