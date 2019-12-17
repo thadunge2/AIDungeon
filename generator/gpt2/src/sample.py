@@ -36,16 +36,14 @@ def top_k_logits(logits, k):
 
 def top_p_logits(logits, p):
     """Nucleus sampling"""
-    batch, _ = logits.shape.as_list()
+    batch, num = logits.shape.as_list()
     sorted_logits = tf.sort(logits, direction="DESCENDING", axis=-1)
     cumulative_probs = tf.cumsum(tf.nn.softmax(sorted_logits, axis=-1), axis=-1)
     indices = tf.stack(
         [
             tf.range(0, batch),
             # number of indices to include
-            tf.maximum(
-                tf.reduce_sum(tf.cast(cumulative_probs <= p, tf.int32), axis=-1) - 1, 0
-            ),
+            tf.minimum(tf.reduce_sum(tf.cast(cumulative_probs < p, tf.int32), axis=-1), num),
         ],
         axis=-1,
     )
@@ -61,7 +59,7 @@ def sample_sequence(
     batch_size=None,
     context=None,
     temperature=1,
-    top_k=0,
+    #top_k=0,
     top_p=1,
 ):
     if start_token is None:
@@ -89,7 +87,7 @@ def sample_sequence(
             next_outputs = step(hparams, prev, past=past)
             logits = next_outputs["logits"][:, -1, :] / tf.to_float(temperature)
             logits = penalize_used(logits, output)
-            logits = top_k_logits(logits, k=top_k)
+            #logits = top_k_logits(logits, k=top_k)
             logits = top_p_logits(logits, p=top_p)
             samples = tf.multinomial(logits, num_samples=1, output_dtype=tf.int32)
             return [
