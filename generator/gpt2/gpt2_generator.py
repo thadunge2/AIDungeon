@@ -13,11 +13,11 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 class GPT2Generator:
-    def __init__(self, generate_num=80, temperature=0.4, top_k=80, top_p=0.9, censor=False):
+    def __init__(self, generate_num=80, temperature=0.4, top_p=0.9, censor=False):
         self.generate_num = generate_num
         self.default_gen_num = generate_num
         self.temp = temperature
-        self.top_k = top_k
+        #self.top_k = top_k
         self.top_p = top_p
         self.censor = censor
 
@@ -51,7 +51,7 @@ class GPT2Generator:
         prompt = prompt.replace("#", "")
         prompt = prompt.replace("*", "")
         prompt = prompt.replace("\n\n", "\n")
-        prompt = re.sub(r"(?<=\w)\.\.(?:\s|$)", ".", prompt)
+        prompt = re.sub("(?<=\w)\.\.(?:\s|$)", ".", prompt)
         prompt = prompt.rstrip(" ")
         # prompt = second_to_first_person(prompt)
 
@@ -72,7 +72,7 @@ class GPT2Generator:
         result = result.replace("#", "")
         result = result.replace("*", "")
         result = result.replace("\n\n", "\n")
-        result = re.sub(r"(?<=\w)\.\.(?:\s|$)", ".", result)
+        result = re.sub("(?<=\w)\.\.(?:\s|$)", ".", result)
         # result = first_to_second_person(result)
         if self.censor:
             result = remove_profanity(result)
@@ -107,7 +107,7 @@ class GPT2Generator:
 
         debug_print = False
         prompt = self.prompt_replace(prompt)
-        last_prompt = prompt[prompt.rfind(">")+2:] if prompt.rfind(">") >= -1 else prompt
+        last_prompt = prompt[prompt.rfind(">")+2:] if prompt.rfind(">") > -1 else prompt
 
         if debug_print:
             print("******DEBUG******")
@@ -120,7 +120,7 @@ class GPT2Generator:
             print("******END DEBUG******")
 
         result = text
-        result = self.result_replace(result, re.findall(r".+?(?:\.{1,3}|[!\?]|$)", last_prompt))
+        result = self.result_replace(result, re.findall(r".+?(?:\.{1,3}|[!\?]|$)(?!\")", last_prompt))
         if len(result) == 0 and depth < 20:
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
         elif result.count(".") < 2 and depth < 20:
@@ -131,7 +131,7 @@ class GPT2Generator:
     def cut_down_prompt(self, prompt):
         split_prompt = prompt.split(">")
         expendable_text = ">".join(split_prompt[2:])
-        return split_prompt[0] + ">" + expendable_text
+        return split_prompt[0] + (">" + expendable_text if len(expendable_text) > 0 else "")
         
     def gen_output(self):
         models_dir = os.path.expanduser(os.path.expandvars(self.model_dir))
@@ -145,12 +145,12 @@ class GPT2Generator:
             context=self.context,
             batch_size=self.batch_size,
             temperature=self.temp,
-            top_k=self.top_k,
+            #top_k=self.top_k,
             top_p=self.top_p,
         )
         
     def change_temp(self, t):
         self.temp = t
         
-    def change_topk(self, t):
-        self.top_k = t
+    def change_top_p(self, t):
+        self.top_p = t
