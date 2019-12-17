@@ -171,8 +171,7 @@ def instructions():
     text += '\n  "/infto ##"       Set a timeout for the AI to respond.'
     text += '\n  "/temp #.#"       Changes the AI\'s temperature'
     text += '\n                    (higher temperature = less focused). Default is 0.4.'
-    text += '\n  "/topk ##"        Changes the AI\'s top_k'
-    text += '\n                    (higher top_k = bigger memorized vocabulary). Default is 80.'
+    text += '\n  "/top ##"         Changes the AI\'s top_p. Default is 0.9.'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
     text += '\n  "/context"        Rewrites everything your AI has currently committed to memory.'
     text += '\n  "/editcontext     Lets you rewrite specific parts of the context.'
@@ -214,10 +213,10 @@ def play_aidungeon_2():
                     context, prompt = character, setting_description
                 else:
                     context, prompt = get_curated_exposition(setting_key, character_key, name, character, setting_description)
-                change_config = input("Would you like to enter a new temp and top_k now? (default: 0.4, 80) (y/N) ")
+                change_config = input("Would you like to enter a new temp and top_p now? (default: 0.4, 0.9) (y/N) ")
                 if change_config.lower() == "y":
                     story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ") or 0.4))
-                    story_manager.generator.change_topk(int(input("Enter a new top_k (default 80): ") or 80))
+                    story_manager.generator.change_topk(int(input("Enter a new top_p (default 0.9): ") or 0.9))
                     console_print("Please wait while the AI model is regenerated...")
                     story_manager.generator.gen_output()
                 console_print(instructions())
@@ -288,7 +287,7 @@ def play_aidungeon_2():
                     text += "\nping is set to:        " + str(ping) 
                     text += "\ncensor is set to:      " + str(generator.censor) 
                     text += "\ntemperature is set to: " + str(story_manager.generator.temp) 
-                    text += "\ntop_k is set to:       " + str(story_manager.generator.top_k) 
+                    text += "\ntop_p is set to:       " + str(story_manager.generator.top_p) 
                     print(text) 
 
                 elif command == "censor":
@@ -409,18 +408,18 @@ def play_aidungeon_2():
                             console_print("Failed to set temperature. Example usage: temp 0.4")
                             continue
                 
-                elif command == "topk":
+                elif command == "top":
                 
                     if len(args) != 1:
-                        console_print("Failed to set top_k. Example usage: topk 80")
+                        console_print("Failed to set top_p. Example usage: top 0.9")
                     else:
                         try:
                             console_print("Regenerating model, please wait...")
-                            story_manager.generator.change_topk(int(args[0]))
+                            story_manager.generator.change_top_p(int(args[0]))
                             story_manager.generator.gen_output()
-                            console_print("Set top_k to {}".format(story_manager.generator.top_k))
+                            console_print("Set top_p to {}".format(story_manager.generator.top_p))
                         except:
-                            console_print("Failed to set top_k. Example usage: topk 80")
+                            console_print("Failed to set top_p. Example usage: top 0.9")
                             continue
                 
                 elif command == 'remember':
