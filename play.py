@@ -415,7 +415,7 @@ def play_aidungeon_2():
                     else:
                         try:
                             console_print("Regenerating model, please wait...")
-                            story_manager.generator.change_top_p(int(args[0]))
+                            story_manager.generator.change_top_p(float(args[0]))
                             story_manager.generator.gen_output()
                             console_print("Set top_p to {}".format(story_manager.generator.top_p))
                         except:
