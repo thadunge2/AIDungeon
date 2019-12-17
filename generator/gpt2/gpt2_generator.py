@@ -51,7 +51,7 @@ class GPT2Generator:
         prompt = prompt.replace("#", "")
         prompt = prompt.replace("*", "")
         prompt = prompt.replace("\n\n", "\n")
-        prompt = re.sub("(?<=\w)\.\.(?:\s|$)", ".", prompt)
+        prompt = re.sub(r"(?<=\w)\.\.(?:\s|$)", ".", prompt)
         prompt = prompt.rstrip(" ")
         # prompt = second_to_first_person(prompt)
 
@@ -72,7 +72,7 @@ class GPT2Generator:
         result = result.replace("#", "")
         result = result.replace("*", "")
         result = result.replace("\n\n", "\n")
-        result = re.sub("(?<=\w)\.\.(?:\s|$)", ".", result)
+        result = re.sub(r"(?<=\w)\.\.(?:\s|$)", ".", result)
         # result = first_to_second_person(result)
         if self.censor:
             result = remove_profanity(result)
@@ -120,7 +120,7 @@ class GPT2Generator:
             print("******END DEBUG******")
 
         result = text
-        result = self.result_replace(result, re.findall(".+?(?:\.{1,3}|[!\?]|$)", last_prompt))
+        result = self.result_replace(result, re.findall(r".+?(?:\.{1,3}|[!\?]|$)", last_prompt))
         if len(result) == 0 and depth < 20:
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
         elif result.count(".") < 2 and depth < 20:
