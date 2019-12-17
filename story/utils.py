@@ -107,7 +107,7 @@ def split_first_sentence(text):
 
 def cut_trailing_action(text):
     lines = text.split("\n")
-    last_para = re.findall(".+?(?:\.{1,3}|[!\?]|$)", lines[-1])
+    last_para = re.findall(r".+?(?:\.{1,3}|[!\?]|$)", lines[-1])
     if len(last_para) < 1:
         return ""
     last_line = last_para[-1].rstrip()
