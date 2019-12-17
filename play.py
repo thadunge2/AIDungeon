@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+import random
 import time
 
 from generator.gpt2.gpt2_generator import *
@@ -22,11 +23,47 @@ def splash():
         return "new"
 
 
+def random_story(story_data):
+    # random setting
+    settings = story_data["settings"].keys()
+    n_settings = len(settings)
+    rand_n = random.randint(0, n_settings - 1)
+    for i, setting in enumerate(settings):
+        if i == rand_n:
+            setting_key = setting
+
+    # temporarily only available in fantasy
+    setting_key = "fantasy"
+
+    # random character
+    characters = story_data["settings"][setting_key]["characters"]
+    n_characters = len(characters)
+    rand_n = random.randint(0, n_characters - 1)
+    for i, character in enumerate(characters):
+        if i == rand_n:
+            character_key = character
+
+    # random name
+    name = grammars.direct(setting_key, "fantasy_name")
+
+    return setting_key, character_key, name, None, None
+
+
 def select_game():
     with open(YAML_FILE, "r") as stream:
         data = yaml.safe_load(stream)
 
-    print("Pick a setting.")
+    # Random story?
+    print("Random story?")
+    console_print("0) yes")
+    console_print("1) no")
+    choice = get_num_options(2)
+
+    if choice == 0:
+        return random_story(data)
+
+    # User-selected story...
+    print("\n\nPick a setting.")
     settings = data["settings"].keys()
     for i, setting in enumerate(settings):
         print_str = str(i) + ") " + setting
@@ -73,8 +110,16 @@ def select_game():
     setting_description = data["settings"][setting_key]["description"]
     character = data["settings"][setting_key]["characters"][character_key]
 
+    return setting_key, character_key, name, character, setting_description
+
+
+def get_curated_exposition(setting_key, character_key, name, character, setting_description):
     name_token = "<NAME>"
-    if character_key == "noble" or character_key == "knight":
+    if (
+        character_key == "noble"
+        or character_key == "knight"
+        or character_key == "wizard"
+    ):
         context = grammars.generate(setting_key, character_key, "context") + "\n\n"
         context = context.replace(name_token, name)
         prompt = grammars.generate(setting_key, character_key, "prompt")
@@ -111,7 +156,8 @@ def instructions():
     text += '\n ex. "!A dragon swoops down and eats Sir Theo."'
     text += '\n'
     text += "\nThe following commands can be entered for any action: "
-    text += '\n  "/revert"         Reverts the last action allowing you to pick a different action.'
+    text += '\n  "/revert"         Reverts the last action allowing you to pick a different'
+    text += '\n                    action.'
     text += '\n  "/retry"          Reverts the last action and tries again with the same action.'
     text += '\n  "/alter"          Edit the most recent AI response'
     text += '\n  "/quit"           Quits the game and saves'
@@ -124,12 +170,12 @@ def instructions():
     text += '\n  "/showstats"      Prints the current game settings'
     text += '\n  "/censor off/on"  Turn censoring off or on.'
     text += '\n  "/ping off/on"    Turn playing a ping sound when the AI responds off or on.'
-    text += '\n                   (not compatible with Colab)'
+    text += '\n                    (not compatible with Colab)'
     text += '\n  "/infto ##"       Set a timeout for the AI to respond.'
     text += '\n  "/temp #.#"       Changes the AI\'s temperature'
-    text += '\n                   (higher temperature = less focused). Default is 0.4.'
+    text += '\n                    (higher temperature = less focused). Default is 0.4.'
     text += '\n  "/topk ##"        Changes the AI\'s top_k'
-    text += '\n                   (higher top_k = bigger memorized vocabulary). Default is 80.'
+    text += '\n                    (higher top_k = bigger memorized vocabulary). Default is 80.'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
     text += '\n  "/context"        Rewrites everything your AI has currently committed to memory.'
     text += '\n  "/editcontext     Lets you rewrite specific parts of the context.'
@@ -160,13 +206,14 @@ def play_aidungeon_2():
         if story_manager.story != None:
             story_manager.story = None
 
-        while story_manager.story is None: 
+        while story_manager.story is None:
             print("\n\n")
             splash_choice = splash()
 
             if splash_choice == "new":
                 print("\n\n")
-                context, prompt = select_game()
+                setting_key, character_key, name, character, setting_description = select_game()
+                context, prompt = get_curated_exposition(setting_key, character_key, name, character, setting_description)
                 change_config = input("Would you like to enter a new temp and top_k now? (default: 0.4, 80) (y/N) ")
                 if change_config.lower() == "y":
                     story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ") or 0.4))
@@ -197,19 +244,31 @@ def play_aidungeon_2():
             sys.stdin.flush()
             action = input("> ").strip()
             if len(action) > 0 and action[0] == "/":
-                split = action[1:].split(" ") # removes preceding slash
+                split = action[1:].split(" ")  # removes preceding slash
                 command = split[0].lower()
                 args = split[1:]
                 if command == "restart":
-                    rating = input("Please rate the story quality from 1-10: ")
-                    rating_float = float(rating)
-                    story_manager.story.rating = rating_float
+                    while True:
+                        try:
+                            rating = input("Please rate the story quality from 1-10: ")
+                            rating_float = max(min(float(rating), 10), 1)
+                        except ValueError:
+                            print("Please return a valid number.")
+                        else:
+                            story_manager.story.rating = rating_float
+                            break
                     break
 
                 elif command == "quit":
-                    rating = input("Please rate the story quality from 1-10: ")
-                    rating_float = float(rating)
-                    story_manager.story.rating = rating_float
+                    while True:
+                        try:
+                            rating = input("Please rate the story quality from 1-10: ")
+                            rating_float = max(min(float(rating), 10), 1)
+                        except ValueError:
+                            print("Please return a valid number.")
+                        else:
+                            story_manager.story.rating = rating_float
+                            break
                     exit()
 
                 elif command == "nosaving":
@@ -233,7 +292,12 @@ def play_aidungeon_2():
                     print(text) 
 
                 elif command == "censor":
-                    if args[0] == "off":
+                    if len(args) == 0:
+                        if generator.censor:
+                            console_print("Censor is enabled.")
+                        else:
+                            console_print("Censor is disabled.")
+                    elif args[0] == "off":
                         if not generator.censor:
                             console_print("Censor is already disabled.")
                         else:
@@ -256,7 +320,6 @@ def play_aidungeon_2():
                         else:
                             ping = False
                             console_print("Ping is now disabled.")
-
                     elif args[0] == "on":
                         if ping:
                             console_print("Ping is already enabled.")
@@ -296,7 +359,7 @@ def play_aidungeon_2():
                         print(str(story_manager.story)) 
 
                 elif command == "revert":
-                    if len(story_manager.story.actions) is 0:
+                    if len(story_manager.story.actions) == 0:
                         console_print("You can't go back any farther. ")
                         continue
 
