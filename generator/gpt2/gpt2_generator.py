@@ -62,18 +62,19 @@ class GPT2Generator:
     def result_replace(self, result, actions):
         # print("\n\nBEFORE RESULT_REPLACE:")
         # print(repr(result))
-        result = cut_trailing_sentence(result)
-        for sentence in actions:
-            result = result.replace(sentence.strip()+" ", "")
-        if len(result) == 0:
-            return ""
-        first_letter_capitalized = result[0].isupper()
+        
         result = result.replace('."', '".')
         result = result.replace("#", "")
         result = result.replace("*", "")
         result = result.replace("\n\n", "\n")
         result = re.sub("(?<=\w)\.\.(?:\s|$)", ".", result)
         # result = first_to_second_person(result)
+        result = cut_trailing_sentence(result)
+        for sentence in actions:
+            result = result.replace(sentence.strip()+" ", "")
+        if len(result) == 0:
+            return ""
+        first_letter_capitalized = result[0].isupper()
         if self.censor:
             result = remove_profanity(result)
 
