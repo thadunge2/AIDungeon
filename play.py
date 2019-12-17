@@ -88,15 +88,10 @@ def select_game():
 
         console_print(
             "\nNow enter a prompt that describes the start of your story. This comes after the Story Context and will give the AI "
-            "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'After arriving "
-            "at the forest, it turns out the evil dragon is actually a pretty cute monster girl. You decide you're going to lay "
-            "this dragon instead.'"
-            "\nEnter a prompt that describes who you are and the first couple sentences of where you start "
-            "out ex:\n 'You are a knight in the kingdom of Larion. You are hunting the evil dragon who has been "
-            + "terrorizing the kingdom. You enter the forest searching for the dragon and see' "
+            "a starting point for the story. Unlike the context, the AI will eventually forget this prompt, ex:\n 'You enter the forest searching for the dragon and see' "
         )
         prompt = input("Starting Prompt: ")
-        return context, prompt
+        return True, None, None, None, context, prompt
 
     setting_key = list(settings)[choice]
 
@@ -110,7 +105,7 @@ def select_game():
     setting_description = data["settings"][setting_key]["description"]
     character = data["settings"][setting_key]["characters"][character_key]
 
-    return setting_key, character_key, name, character, setting_description
+    return False, setting_key, character_key, name, character, setting_description
 
 
 def get_curated_exposition(setting_key, character_key, name, character, setting_description):
@@ -212,8 +207,11 @@ def play_aidungeon_2():
 
             if splash_choice == "new":
                 print("\n\n")
-                setting_key, character_key, name, character, setting_description = select_game()
-                context, prompt = get_curated_exposition(setting_key, character_key, name, character, setting_description)
+                is_custom, setting_key, character_key, name, character, setting_description = select_game()
+                if is_custom:
+                    context, prompt = character, setting_description
+                else:
+                    context, prompt = get_curated_exposition(setting_key, character_key, name, character, setting_description)
                 change_config = input("Would you like to enter a new temp and top_k now? (default: 0.4, 80) (y/N) ")
                 if change_config.lower() == "y":
                     story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ") or 0.4))
