@@ -172,6 +172,7 @@ def instructions():
     text += '\n  "/temp #.#"       Changes the AI\'s temperature'
     text += '\n                    (higher temperature = less focused). Default is 0.4.'
     text += '\n  "/top ##"         Changes the AI\'s top_p. Default is 0.9.'
+    text += '\n  "/cut off/on"     Turns action trimming of the output off or on. Default is on'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
     text += '\n  "/context"        Rewrites everything your AI has currently committed to memory.'
     text += '\n  "/editcontext     Lets you rewrite specific parts of the context.'
@@ -204,21 +205,28 @@ def play_aidungeon_2():
 
         while story_manager.story is None:
             print("\n\n")
+
             splash_choice = splash()
 
             if splash_choice == "new":
                 print("\n\n")
+
                 is_custom, setting_key, character_key, name, character, setting_description = select_game()
                 if is_custom:
                     context, prompt = character, setting_description
                 else:
                     context, prompt = get_curated_exposition(setting_key, character_key, name, character, setting_description)
-                change_config = input("Would you like to enter a new temp and top_p now? (default: 0.4, 0.9) (y/N) ")
+
+                change_config = input(
+                    "Would you like to enter a new parameters now? (default: temp:  0.4, top_p: 0.9, cut_actions: true) (y/N) ")
                 if change_config.lower() == "y":
                     story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ") or 0.4))
                     story_manager.generator.change_top_p(float(input("Enter a new top_p (default 0.9): ") or 0.9))
+                    story_manager.generator.change_cut_actions(bool(int(input(
+                        "Enter 1 to trim actions from output, 0 to preserve as much as possible (default 1): ") or "1")))
                     console_print("Please wait while the AI model is regenerated...")
                     story_manager.generator.gen_output()
+                
                 console_print(instructions())
                 print("\nGenerating story...")
                 story_manager.generator.generate_num = 120
@@ -287,7 +295,8 @@ def play_aidungeon_2():
                     text += "\nping is set to:        " + str(ping) 
                     text += "\ncensor is set to:      " + str(generator.censor) 
                     text += "\ntemperature is set to: " + str(story_manager.generator.temp) 
-                    text += "\ntop_p is set to:       " + str(story_manager.generator.top_p) 
+                    text += "\ntop_p is set to:       " + str(story_manager.generator.top_p)
+                    text += "\ncut is set to:         " + str(story_manager.generator.cut_actions)
                     print(text) 
 
                 elif command == "censor":
@@ -327,7 +336,23 @@ def play_aidungeon_2():
                             console_print("Ping is now enabled.")
                     else:
                         console_print(f"Invalid argument: {args[0]}")
-
+                elif command == "cut":
+                    if len(args) == 0:
+                        console_print("Cut actions is " + ("enabled." if story_manager.generator.cut_actions else "disabled."))
+                    elif args[0] == "off":
+                        if not story_manager.generator.cut_actions:
+                            console_print("Cut actions is already disabled.")
+                        else:
+                            story_manager.generator.change_cut_actions(False)
+                            console_print("Cut actions is now disabled.")
+                    elif args[0] == "on":
+                        if story_manager.generator.cut_actions:
+                            console_print("Cut actions is already enabled.")
+                        else:
+                            story_manager.generator.change_cut_actions(True)
+                            console_print("Cut actions is now enabled.")
+                    else:
+                        console_print(f"Invalid argument: {args[0]}")
                 elif command == "load":
                     if len(args) == 0:
                         load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")

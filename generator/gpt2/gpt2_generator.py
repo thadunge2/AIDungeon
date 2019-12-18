@@ -13,13 +13,14 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 class GPT2Generator:
-    def __init__(self, generate_num=80, temperature=0.4, top_p=0.9, censor=False):
+    def __init__(self, generate_num=80, temperature=0.4, top_p=0.9, censor=False, cut_actions=True):
         self.generate_num = generate_num
         self.default_gen_num = generate_num
         self.temp = temperature
         #self.top_k = top_k
         self.top_p = top_p
         self.censor = censor
+        self.cut_actions = cut_actions
 
         self.model_name = "model_v5"
         self.model_dir = "generator/gpt2/models"
@@ -51,7 +52,7 @@ class GPT2Generator:
         prompt = prompt.replace("#", "")
         prompt = prompt.replace("*", "")
         prompt = prompt.replace("\n\n", "\n")
-        prompt = re.sub("(?<=\w)\.\.(?:\s|$)", ".", prompt)
+        prompt = re.sub(r"(?<=\w)\.\.(?:\s|$)", ".", prompt)
         prompt = prompt.rstrip(" ")
         # prompt = second_to_first_person(prompt)
 
@@ -62,14 +63,20 @@ class GPT2Generator:
     def result_replace(self, result, actions):
         # print("\n\nBEFORE RESULT_REPLACE:")
         # print(repr(result))
-        
+
         result = result.replace('."', '".')
         result = result.replace("#", "")
         result = result.replace("*", "")
         result = result.replace("\n\n", "\n")
-        result = re.sub("(?<=\w)\.\.(?:\s|$)", ".", result)
+        result = re.sub(r"(?<=\w)\.\.(?:\s|$)", ".", result)
         # result = first_to_second_person(result)
-        result = cut_trailing_sentence(result)
+        result = cut_trailing_sentence(result, cut_actions=self.cut_actions)
+        if not self.cut_actions:
+            lines = [l.rstrip() for l in result.rstrip().split("\n")]
+            lines = [l for l in lines if len(l) > 0]
+            lines = [l.replace(">", "").strip() if ('"' in l or "?" in l or "you say" in l.lower() or "you ask" in l.lower()) and i < len(lines)-1 else l for i,l in enumerate(lines)] # Turn dialogue actions into regular lines (if it's not the last one) to keep conversation intact
+            lines = [l for l in lines if not l.startswith(">")] # Remove any remaining actions (but keep results)
+            result = "\n".join(lines)
         for sentence in actions:
             result = result.replace(sentence.strip()+" ", "")
         if len(result) == 0:
@@ -118,10 +125,12 @@ class GPT2Generator:
 
         if debug_print:
             print("Generated result is: ", repr(text))
-            print("******END DEBUG******")
 
         result = text
         result = self.result_replace(result, re.findall(r".+?(?:\.{1,3}|[!\?]|$)(?!\")", last_prompt))
+        if debug_print:
+            print("Trimmed result with cut_actions=",self.cut_actions,"is: ", result)
+            print("******END DEBUG******")
         if len(result) == 0 and depth < 20:
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
         elif result.count(".") < 2 and depth < 20:
@@ -139,7 +148,7 @@ class GPT2Generator:
         hparams = model.default_hparams()
         with open(os.path.join(models_dir, self.model_name, "hparams.json")) as f:
             hparams.override_from_dict(json.load(f))
-        seed = np.random.randint(0, 100000)
+        # seed = np.random.randint(0, 100000)
         self.output = sample.sample_sequence(
             hparams=hparams,
             length=self.generate_num,
@@ -155,3 +164,6 @@ class GPT2Generator:
         
     def change_top_p(self, t):
         self.top_p = t
+
+    def change_cut_actions(self, flag):
+        self.cut_actions = flag
