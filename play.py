@@ -186,7 +186,7 @@ def play_aidungeon_2():
 
     print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
     generator = GPT2Generator()
-    story_manager = UnconstrainedStoryManager(generator)
+    story_manager = UnconstrainedStoryManager(generator, upload_story=upload_story, cloud=False)
     print("\n")
 
     with open("opening.txt", "r", encoding="utf-8") as file:
@@ -227,10 +227,10 @@ def play_aidungeon_2():
             else:
                 load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")
                 if load_ID.startswith("gs://"):
-                    result = story_manager.load_new_story(load_ID[5:], upload_story=upload_story, cloud=True)
-                    story_manager.story.cloud = True
+                    story_manager.cloud = True
+                    result = story_manager.load_from_storage(load_ID[5:])
                 else:
-                    result = story_manager.load_new_story(load_ID, upload_story=upload_story)
+                    result = story_manager.load_from_storage(load_ID)
                 print("\nLoading Game...\n")
                 print(result)
 
@@ -267,11 +267,11 @@ def play_aidungeon_2():
 
                 elif command == "nosaving":
                     upload_story = False
-                    story_manager.story.upload_story = False
+                    story_manager.upload_story = False
                     console_print("Saving turned off.")
 
                 elif command == "cloud":
-                    story_manager.story.cloud = True
+                    story_manager.cloud = True
                     console_print("Cloud saving turned on.")
 
                 elif command == "help":
@@ -331,16 +331,16 @@ def play_aidungeon_2():
                     else:
                         load_ID = args[0]
                     if load_ID.startswith("gs://"):
-                        story_manager.story.cloud = True
-                        result = story_manager.story.load_from_storage(load_ID[5:])
+                        story_manager.cloud = True
+                        result = story_manager.load_from_storage(load_ID[5:])
                     else:
-                        result = story_manager.story.load_from_storage(load_ID)
+                        result = story_manager.load_from_storage(load_ID)
                     console_print("\nLoading Game...\n")
                     console_print(result)
 
                 elif command == "save":
                     if upload_story:
-                        save_id = story_manager.story.save_to_storage()
+                        save_id = story_manager.save_story()
                         console_print("Game saved.")
                         console_print(f"To load the game, type 'load' and enter the following ID: {save_id}")
                     else:
