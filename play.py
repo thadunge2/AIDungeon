@@ -154,7 +154,8 @@ def instructions():
     text += '\n  "/alter"          Edit the most recent AI response'
     text += '\n  "/quit"           Quits the game and saves'
     text += '\n  "/restart"        Starts a new game and saves your current one'
-    text += '\n  "/cloud"          Turns on cloud saving when you use the "save" command'
+    text += '\n  "/cloud off/on"   Turns off and on cloud saving when you use the "save" command'
+    text += '\n  "/saving off/on"  Turns off and on saving'
     text += '\n  "/save"           Makes a new save of your game and gives you the save ID'
     text += '\n  "/load"           Asks for a save ID and loads the game if the ID is valid'
     text += '\n  "/print"          Prints a transcript of your adventure'
@@ -174,10 +175,9 @@ def instructions():
 
 
 def play_aidungeon_2():
-
     console_print(
         "AI Dungeon 2 will save and use your actions and game to continually improve AI Dungeon."
-        + " If you would like to disable this enter '/nosaving' as an action. This will also turn off the "
+        + " If you would like to disable this enter '/saving off' as an action. This will also turn off the "
         + "ability to save games."
     )
 
@@ -265,25 +265,46 @@ def play_aidungeon_2():
                             break
                     exit()
 
-                elif command == "nosaving":
-                    upload_story = False
-                    story_manager.story.upload_story = False
-                    console_print("Saving turned off.")
+                elif command == "saving":
+                    if len(args) == 0:
+                        console_print("Saving is " + ("enabled." if upload_story else "disabled.") + " Use /saving " +
+                                      ("off" if upload_story else "on") + " to change.")
+                    elif args[0] == "off":
+                        upload_story = False
+                        story_manager.story.upload_story = False
+                        console_print("Saving turned off.")
+                    elif args[0] == "on":
+                        upload_story = True
+                        story_manager.story.upload_story = True
+                        console_print("Saving turned on.")
+                    else:
+                        console_print(f"Invalid argument: {args[0]}")
 
                 elif command == "cloud":
-                    story_manager.story.cloud = True
-                    console_print("Cloud saving turned on.")
+                    if len(args) == 0:
+                        console_print("Cloud saving is " + ("enabled." if story_manager.story.cloud else "disabled.") + " Use /cloud " +
+                                      ("off" if story_manager.story.cloud else "on") + " to change.")
+                    elif args[0] == "off":
+                        story_manager.story.cloud = False
+                        console_print("Cloud saving turned off.")
+                    elif args[0] == "on":
+                        story_manager.story.cloud = True
+                        console_print("Cloud saving turned on.")
+                    else:
+                        console_print(f"Invalid argument: {args[0]}")
+
 
                 elif command == "help":
                     console_print(instructions())
 
                 elif command == "showstats":
-                    text = "nosaving is set to:      " + str(not upload_story)
-                    text += "\nping is set to:        " + str(ping) 
-                    text += "\ncensor is set to:      " + str(generator.censor) 
-                    text += "\ntemperature is set to: " + str(story_manager.generator.temp) 
-                    text += "\ntop_p is set to:       " + str(story_manager.generator.top_p) 
-                    print(text) 
+                    text = "saving is set to:      " + str(upload_story)
+                    text += "\ncloud saving is set to:" + str(story_manager.story.cloud)
+                    text += "\nping is set to:        " + str(ping)
+                    text += "\ncensor is set to:      " + str(generator.censor)
+                    text += "\ntemperature is set to: " + str(story_manager.generator.temp)
+                    text += "\ntop_p is set to:       " + str(story_manager.generator.top_p)
+                    print(text)
 
                 elif command == "censor":
                     if len(args) == 0:
