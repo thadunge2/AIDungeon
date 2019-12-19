@@ -466,51 +466,31 @@ def play_aidungeon_2():
                 elif command == 'editcontext':
                     try:
                         current_context = story_manager.get_context()
-                        current_context = current_context.strip()
-                        context_list = current_context.split(".")
-
-                        if context_list[-1] == "":
-                            del context_list[-1]
-
-                        for i in range(len(context_list)):
-                            context_list[i] = context_list[i].strip()
-
-                        console_print("Current story context:\n" + current_context + "\n")
-                        console_print("0) Remove a sentence\n1) Edit a sentence\n2) Add a new sentence\n3) Cancel\n")
-                        choice = get_num_options(4)
-
-                        if choice == 0:
-                            console_print("Pick a sentence to remove:\n")
-                            for i in range(len(context_list)):
-                                console_print(str(i) + ") " + context_list[i])
-                            choice = get_num_options(len(context_list))
-                            del context_list[choice]
-                        elif choice == 1:
-                            console_print("Pick a sentence to edit:\n")
-                            for i in range(len(context_list)):
-                                console_print(str(i) + ") " + context_list[i])
-                            choice = get_num_options(len(context_list))
-                            console_print(context_list[choice])
-                            context_list[choice] = input("\nWrite the new sentence:\n")
-                        elif choice == 2:
-                            context_list.append(input("Write a new sentence:\n"))
+                        new_context = string_edit(current_context)
+                        if new_context is None:
+                            pass
                         else:
-                            console_print("Cancelled.\n")
-                            continue
+                            story_manager.set_context(new_context)
+                            console_print("Story context updated.\n")
+                    except:
+                        console_print("Something went wrong, cancelling.")
+                        pass
 
-                        current_context = ""
-                        for i in range(len(context_list)):
-                            if context_list[i] == "":
-                                continue
-                            if context_list[i][-1] == ".":
-                                context_list[i] = context_list[i] + " "
-                            elif context_list[i][-1] != " ":
-                                context_list[i] = context_list[i] + ". "
-                            current_context = current_context + context_list[i]
-                        current_context = current_context.strip()
-                        story_manager.set_context(current_context)
-                        console_print("Story context updated.\n")
-
+                elif command == 'alter2':
+                    try:
+                        try:
+                            current_result = story_manager.story.results[-1]
+                        except IndexError:
+                            current_result = story_manager.story.story_start
+                        new_result = string_edit(current_result)
+                        if new_result is None:
+                            pass
+                        else:
+                            try:
+                                story_manager.story.results[-1] = new_result
+                            except IndexError:
+                                story_manager.story.story_start = new_result
+                            console_print("Result updated.\n")
                     except:
                         console_print("Something went wrong, cancelling.")
                         pass
