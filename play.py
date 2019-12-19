@@ -313,7 +313,9 @@ def play_aidungeon_2():
                         console_print(f"Invalid argument: {args[0]}")
                                
                 elif command == "ping":
-                    if args[0] == "off":
+                    if len(args) == 0:
+                        console_print("Ping is " + ("enabled." if ping else "disabled."))
+                    elif args[0] == "off":
                         if not ping:
                             console_print("Ping is already disabled.")
                         else:
