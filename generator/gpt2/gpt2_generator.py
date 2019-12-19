@@ -13,7 +13,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 class GPT2Generator:
-    def __init__(self, generate_num=80, temperature=0.4, top_p=0.9, censor=False):
+    def __init__(self, generate_num=80, temperature=0.4, top_p=0.9, censor=False, max_depth=20):
         self.generate_num = generate_num
         self.default_gen_num = generate_num
         self.temp = temperature
@@ -27,6 +27,8 @@ class GPT2Generator:
 
         self.batch_size = 1
         self.samples = 1
+
+        self.max_depth = max_depth
 
         models_dir = os.path.expanduser(os.path.expandvars(self.model_dir))
         self.enc = encoder.get_encoder(self.model_name, models_dir)
@@ -122,9 +124,9 @@ class GPT2Generator:
 
         result = text
         result = self.result_replace(result, re.findall(r".+?(?:\.{1,3}|[!\?]|$)(?!\")", last_prompt))
-        if len(result) == 0 and depth < 20:
+        if len(result) == 0 and depth < self.max_depth:
             return self.generate(self.cut_down_prompt(prompt), depth=depth+1)
-        elif result.count(".") < 2 and depth < 20:
+        elif result.count(".") < 2 and depth < self.max_depth:
             return self.generate(prompt, depth=depth+1)
 
         return result

@@ -172,6 +172,7 @@ def instructions():
     text += '\n  "/temp #.#"       Changes the AI\'s temperature'
     text += '\n                    (higher temperature = less focused). Default is 0.4.'
     text += '\n  "/top ##"         Changes the AI\'s top_p. Default is 0.9.'
+    text += '\n  "/memory ##"      Changes the number of previous steps to include in the memory for the generator. Default is 20.'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
     text += '\n  "/context"        Rewrites everything your AI has currently committed to memory.'
     text += '\n  "/editcontext     Lets you rewrite specific parts of the context.'
@@ -188,6 +189,7 @@ def play_aidungeon_2():
 
     upload_story = True
     ping = False
+    memory = 20
 
     print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
     generator = GPT2Generator()
@@ -213,10 +215,11 @@ def play_aidungeon_2():
                     context, prompt = character, setting_description
                 else:
                     context, prompt = get_curated_exposition(setting_key, character_key, name, character, setting_description)
-                change_config = input("Would you like to enter a new temp and top_p now? (default: 0.4, 0.9) (y/N) ")
+                change_config = input("Would you like to enter new parameters now? (default: temp=0.4, top_p=0.9, memory=20) (y/N) ")
                 if change_config.lower() == "y":
                     story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ") or 0.4))
                     story_manager.generator.change_top_p(float(input("Enter a new top_p (default 0.9): ") or 0.9))
+                    memory = int(input("Enter new memory value (default 20): ") or memory)
                     console_print("Please wait while the AI model is regenerated...")
                     story_manager.generator.gen_output()
                 console_print(instructions())
@@ -225,6 +228,7 @@ def play_aidungeon_2():
                 story_manager.start_new_story(
                     prompt, context=context, upload_story=upload_story
                 )
+                story_manager.set_memory(memory)
                 print("\n")
                 console_print(str(story_manager.story))
                 story_manager.generator.generate_num = story_manager.generator.default_gen_num
@@ -422,6 +426,17 @@ def play_aidungeon_2():
                             console_print("Set top_p to {}".format(story_manager.generator.top_p))
                         except:
                             console_print("Failed to set top_p. Example usage: top 0.9")
+                            continue
+
+                elif command == "memory":
+                    if len(args) == 0:
+                        console_print("Current memory: %d" % story_manager.story.memory)
+                    else:
+                        try:
+                            story_manager.set_memory(int(args[0]))
+                            console_print("Set memory to %d" % story_manager.story.memory)
+                        except:
+                            console_print("Failed to set memory. Example usage: /memory 20")
                             continue
                 
                 elif command == 'remember':

@@ -9,7 +9,7 @@ from story.utils import *
 
 class Story:
     def __init__(
-        self, story_start, context="", seed=None, game_state=None, upload_story=False, cloud=False
+        self, story_start, context="", seed=None, game_state=None, upload_story=False, cloud=False, memory=20
     ):
         self.story_start = story_start
         self.context = context
@@ -31,7 +31,7 @@ class Story:
         if game_state is None:
             game_state = dict()
         self.game_state = game_state
-        self.memory = 20
+        self.memory = memory
         self.cloud = cloud
 
     def __del__(self):
@@ -52,6 +52,8 @@ class Story:
         self.game_state = story_dict["game_state"]
         self.context = story_dict["context"]
         self.uuid = story_dict["uuid"]
+        if "memory" in story_dict.keys():
+            self.memory = story_dict["memory"]
 
         if "rating" in story_dict.keys():
             self.rating = story_dict["rating"]
@@ -100,6 +102,7 @@ class Story:
         story_dict["context"] = self.context
         story_dict["uuid"] = self.uuid
         story_dict["rating"] = self.rating
+        story_dict["memory"] = self.memory
 
         return json.dumps(story_dict)
 
@@ -181,6 +184,7 @@ class StoryManager:
             game = json.load(fp)
         self.story = Story("", upload_story=upload_story)
         self.story.init_from_dict(game)
+        self.set_memory(self.story.memory)
         return str(self.story)
 
     def load_story(self, story, from_json=False):
@@ -197,24 +201,30 @@ class StoryManager:
     def story_context(self):
         return self.story.latest_result()
 
+    def set_memory(self, memory):
+        if self.story is not None:
+            self.story.memory = memory
+        self.generator.max_depth = memory
+
 
 class UnconstrainedStoryManager(StoryManager):
     def act(self, action_choice):
         result = self.generate_result(action_choice)
         self.story.add_to_story(action_choice, result)
         return result
-        
+
     def act_with_timeout(self, action_choice):
         return func_timeout(self.inference_timeout, self.act, (action_choice,))
 
     def generate_result(self, action):
         block = self.generator.generate(self.story_context() + action)
         return block
-		
+
     def set_context(self, context):
         self.story.context = context
+
     def get_context(self):
-        return self.story.context		
+        return self.story.context
 
 
 class ConstrainedStoryManager(StoryManager):
