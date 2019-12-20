@@ -7,6 +7,8 @@ from subprocess import Popen
 from story.utils import *
 import atexit
 
+from cryptography.fernet import Fernet, InvalidToken
+
 save_path = "./saves/"
 
 
@@ -106,6 +108,7 @@ class StoryManager:
         self.inference_timeout = 120
         self.cloud = cloud
         self.upload_story = upload_story
+        self.encryptor = None
         atexit.register(self.on_exit)
 
     def start_new_story(
@@ -131,17 +134,27 @@ class StoryManager:
 
     def load_from_storage(self, story_id):
         if not os.path.exists(save_path):
-            return "Error: save not found."
+            return None
 
-        file_name = "story" + story_id + ".json"
+        file_name = "story" + story_id + (".json" if self.encryptor is None else ".bin")
         if self.cloud:
             cmd = "gsutil cp gs://aidungeonstories/" + file_name + " " + save_path
             os.system(cmd)
+
         exists = os.path.isfile(os.path.join(save_path, file_name))
 
         if exists:
-            with open(os.path.join(save_path, file_name), "r") as fp:
-                game = json.load(fp)
+            if self.encryptor is not None:
+                with open(os.path.join(save_path, file_name), "rb") as fp:
+                    story_encrypted = fp.read()
+                    try:
+                        story_decrypted = self.encryptor.decrypt(story_encrypted)
+                    except InvalidToken:
+                        return None
+                    game = json.loads(story_decrypted.decode())
+            else:
+                with open(os.path.join(save_path, file_name), "r") as fp:
+                    game = json.load(fp)
             self.story = Story("")
             self.story.init_from_dict(game)
             changed = False
@@ -154,7 +167,7 @@ class StoryManager:
                 self.generator.gen_output()
             return str(self.story)
         else:
-            return "Error: save not found."
+            return None
 
     def save_story(self):
         story_id = str(uuid.uuid1())
@@ -167,10 +180,16 @@ class StoryManager:
             os.makedirs(save_path)
 
         story_json = json.dumps(story_dict)
-        file_name = "story" + str(story_id) + ".json"
-        sf = open(os.path.join(save_path, file_name), "w")
-        sf.write(story_json)
-        sf.close()
+        if self.encryptor is not None:
+            story_encoded = story_json.encode()
+            story_encrypted = self.encryptor.encrypt(story_encoded)
+            file_name = "story" + str(story_id) + ".bin"
+            with open(os.path.join(save_path, file_name), "wb") as sf:
+                sf.write(story_encrypted)
+        else:
+            file_name = "story" + str(story_id) + ".json"
+            with open(os.path.join(save_path, file_name), "w") as sf:
+                sf.write(story_json)
 
         FNULL = open(os.devnull, "w")
         if self.cloud:
@@ -180,6 +199,15 @@ class StoryManager:
                 stderr=subprocess.STDOUT,
             )
         return story_id
+
+    def set_encryption(self, key):
+        if key is None:
+            self.encryptor = None
+        else:
+            self.encryptor = Fernet(key)
+
+    def has_encryption(self):
+        return self.encryptor is not None
 
     def on_exit(self):
         if self.upload_story:
