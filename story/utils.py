@@ -324,6 +324,19 @@ def string_to_sentence_list(text):
 def string_edit(text):
     text = text.strip()
     sentences = string_to_sentence_list(text)
+    new_sentences = []
+    for i in range(len(sentences) - 1):
+        if len(sentences[i]) + len(sentences[i+1]) < 40 and sentences[i] != "<break>" and sentences[i+1] != "<break>":
+            merged_sentence = sentences[i] + " " + sentences[i+1]
+            print(merged_sentence)
+            new_sentences.append(merged_sentence)
+            sentences[i+1] = ""
+        else:
+            if sentences[i] != "":
+                new_sentences.append(sentences[i])
+    if sentences[-1] != "":
+        new_sentences.append(sentences[-1])
+    sentences = new_sentences
     sentence_choices = []
     for i in sentences:
         if i != "<break>":
