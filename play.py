@@ -454,7 +454,7 @@ def play_aidungeon_2():
                         continue
 
                     last_action = story_manager.story.actions.pop()
-                    # last_result = story_manager.story.results.pop()
+                    last_result = story_manager.story.results.pop()
 
                     try:
                         try:
