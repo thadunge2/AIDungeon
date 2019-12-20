@@ -651,8 +651,7 @@ def play_aidungeon_2():
                         console_print(result)
 
                 elif player_died(result):
-                    console_print(result)
-                    console_print("YOU DIED. GAME OVER")
+                    console_print(result + "\n YOU DIED. GAME OVER")
                     console_print("\nOptions:")
                     console_print("0) Start a new game")
                     console_print(
