@@ -43,7 +43,7 @@ redownload () {
 	download_torrent
 }
 
-if [[ -d "${MODEL_DIRECTORY}" ]]; then
+if [[ -d "${MODEL_DIRECTORY}/${MODEL_VERSION}" ]]; then
 	ANSWER="n"
 	echo "AIDungeon2 Model appears to be downloaded."
 	echo "Would you like to redownload?"

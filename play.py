@@ -25,23 +25,19 @@ def splash():
 
 def random_story(story_data):
     # random setting
-    settings = story_data["settings"].keys()
-    n_settings = len(settings)
-    rand_n = random.randint(0, n_settings - 1)
-    for i, setting in enumerate(settings):
-        if i == rand_n:
-            setting_key = setting
+    # settings = list(story_data["settings"])
+    # n_settings = len(settings)
+    # rand_n = random.randint(0, n_settings - 1)
+    # setting_key = settings[rand_n]
 
     # temporarily only available in fantasy
     setting_key = "fantasy"
 
     # random character
-    characters = story_data["settings"][setting_key]["characters"]
+    characters = list(story_data["settings"][setting_key]["characters"])
     n_characters = len(characters)
     rand_n = random.randint(0, n_characters - 1)
-    for i, character in enumerate(characters):
-        if i == rand_n:
-            character_key = character
+    character_key = characters[rand_n]
 
     # random name
     name = grammars.direct(setting_key, "fantasy_name")
@@ -77,7 +73,6 @@ def select_game():
 
         if choice == len(settings):
 
-            context = ""
             console_print(
                 "\n(optional, can be left blank) Enter a prompt that describes who you are and what are your goals. The AI will "
                 "always remember this prompt and will use it for context, ex:\n 'Your name is John Doe. You are a knight in "
@@ -159,7 +154,8 @@ def instructions():
     text += '\n  "/alter"          Edit the most recent AI response'
     text += '\n  "/quit"           Quits the game and saves'
     text += '\n  "/restart"        Starts a new game and saves your current one'
-    text += '\n  "/cloud"          Turns on cloud saving when you use the "save" command'
+    text += '\n  "/cloud off/on"   Turns off and on cloud saving when you use the "save" command'
+    text += '\n  "/saving off/on"  Turns off and on saving'
     text += '\n  "/save"           Makes a new save of your game and gives you the save ID'
     text += '\n  "/load"           Asks for a save ID and loads the game if the ID is valid'
     text += '\n  "/print"          Prints a transcript of your adventure'
@@ -180,10 +176,9 @@ def instructions():
 
 
 def play_aidungeon_2():
-
     console_print(
         "AI Dungeon 2 will save and use your actions and game to continually improve AI Dungeon."
-        + " If you would like to disable this enter '/nosaving' as an action. This will also turn off the "
+        + " If you would like to disable this enter '/saving off' as an action. This will also turn off the "
         + "ability to save games."
     )
 
@@ -200,7 +195,7 @@ def play_aidungeon_2():
     print(starter)
 
     while True:
-        if story_manager.story != None:
+        if story_manager.story is not None:
             story_manager.story = None
 
         while story_manager.story is None:
@@ -278,26 +273,47 @@ def play_aidungeon_2():
                             break
                     exit()
 
-                elif command == "nosaving":
-                    upload_story = False
-                    story_manager.story.upload_story = False
-                    console_print("Saving turned off.")
+                elif command == "saving":
+                    if len(args) == 0:
+                        console_print("Saving is " + ("enabled." if upload_story else "disabled.") + " Use /saving " +
+                                      ("off" if upload_story else "on") + " to change.")
+                    elif args[0] == "off":
+                        upload_story = False
+                        story_manager.story.upload_story = False
+                        console_print("Saving turned off.")
+                    elif args[0] == "on":
+                        upload_story = True
+                        story_manager.story.upload_story = True
+                        console_print("Saving turned on.")
+                    else:
+                        console_print(f"Invalid argument: {args[0]}")
 
                 elif command == "cloud":
-                    story_manager.story.cloud = True
-                    console_print("Cloud saving turned on.")
+                    if len(args) == 0:
+                        console_print("Cloud saving is " + ("enabled." if story_manager.story.cloud else "disabled.") + " Use /cloud " +
+                                      ("off" if story_manager.story.cloud else "on") + " to change.")
+                    elif args[0] == "off":
+                        story_manager.story.cloud = False
+                        console_print("Cloud saving turned off.")
+                    elif args[0] == "on":
+                        story_manager.story.cloud = True
+                        console_print("Cloud saving turned on.")
+                    else:
+                        console_print(f"Invalid argument: {args[0]}")
+
 
                 elif command == "help":
                     console_print(instructions())
 
                 elif command == "showstats":
-                    text =    "nosaving is set to:    " + str(not upload_story) 
-                    text += "\nping is set to:        " + str(ping) 
-                    text += "\ncensor is set to:      " + str(generator.censor) 
-                    text += "\ntemperature is set to: " + str(story_manager.generator.temp) 
+                    text = "saving is set to:      " + str(upload_story)
+                    text += "\ncloud saving is set to:" + str(story_manager.story.cloud)
+                    text += "\nping is set to:        " + str(ping)
+                    text += "\ncensor is set to:      " + str(generator.censor)
+                    text += "\ntemperature is set to: " + str(story_manager.generator.temp)
                     text += "\ntop_p is set to:       " + str(story_manager.generator.top_p)
                     text += "\ncut is set to:         " + str(story_manager.generator.cut_actions)
-                    print(text) 
+                    print(text)
 
                 elif command == "censor":
                     if len(args) == 0:
@@ -322,7 +338,9 @@ def play_aidungeon_2():
                         console_print(f"Invalid argument: {args[0]}")
                                
                 elif command == "ping":
-                    if args[0] == "off":
+                    if len(args) == 0:
+                        console_print("Ping is " + ("enabled." if ping else "disabled."))
+                    elif args[0] == "off":
                         if not ping:
                             console_print("Ping is already disabled.")
                         else:
@@ -368,9 +386,9 @@ def play_aidungeon_2():
 
                 elif command == "save":
                     if upload_story:
-                        id = story_manager.story.save_to_storage()
+                        save_id = story_manager.story.save_to_storage()
                         console_print("Game saved.")
-                        console_print(f"To load the game, type 'load' and enter the following ID: {id}")
+                        console_print(f"To load the game, type 'load' and enter the following ID: {save_id}")
                     else:
                         console_print("Saving has been turned off. Cannot save.")
 
@@ -410,50 +428,49 @@ def play_aidungeon_2():
                 elif command == "infto":
 
                     if len(args) != 1:
-                        console_print("Failed to set timeout. Example usage: infto 30")
+                        console_print("Failed to set timeout. Example usage: /infto 30")
                     else:
                         try:
                             story_manager.inference_timeout = int(args[0])
                             console_print("Set timeout to {}".format(story_manager.inference_timeout))
-                        except:
-                            console_print("Failed to set timeout. Example usage: infto 30")
+                        except ValueError:
+                            console_print("Failed to set timeout. Example usage: /infto 30")
                             continue
                     
                 elif command == "temp":
                 
                     if len(args) != 1:
-                        console_print("Failed to set temperature. Example usage: temp 0.4")
+                        console_print("Failed to set temperature. Example usage: /temp 0.4")
                     else:
                         try:
                             console_print("Regenerating model, please wait...")
                             story_manager.generator.change_temp(float(args[0]))
                             story_manager.generator.gen_output()
                             console_print("Set temp to {}".format(story_manager.generator.temp))
-                        except:
-                            console_print("Failed to set temperature. Example usage: temp 0.4")
+                        except ValueError:
+                            console_print("Failed to set temperature. Example usage: /temp 0.4")
                             continue
                 
                 elif command == "top":
                 
                     if len(args) != 1:
-                        console_print("Failed to set top_p. Example usage: top 0.9")
+                        console_print("Failed to set top_p. Example usage: /top 0.9")
                     else:
                         try:
                             console_print("Regenerating model, please wait...")
                             story_manager.generator.change_top_p(float(args[0]))
                             story_manager.generator.gen_output()
                             console_print("Set top_p to {}".format(story_manager.generator.top_p))
-                        except:
-                            console_print("Failed to set top_p. Example usage: top 0.9")
+                        except ValueError:
+                            console_print("Failed to set top_p. Example usage: /top 0.9")
                             continue
                 
                 elif command == 'remember':
-
-                    try:
+                    if len(args) == 0:
+                        console_print("Failed to add to memory. Example usage: /remember that Sir Theo is a knight")
+                    else:
                         story_manager.story.context += "You know " + " ".join(args[0:]) + ". "
                         console_print("You make sure to remember {}.".format(" ".join(action.split(" ")[1:])))
-                    except:
-                        console_print("Failed to add to memory. Example usage: remember that Sir Theo is a knight")
                     
                 elif command == 'retry':
 
@@ -462,7 +479,7 @@ def play_aidungeon_2():
                         continue
 
                     last_action = story_manager.story.actions.pop()
-                    last_result = story_manager.story.results.pop()
+                    # last_result = story_manager.story.results.pop()
 
                     try:
                         try:
