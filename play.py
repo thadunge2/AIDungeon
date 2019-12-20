@@ -173,8 +173,7 @@ def instructions():
     text += '\n                    (higher temperature = less focused). Default is 0.4.'
     text += '\n  "/top ##"         Changes the AI\'s top_p. Default is 0.9.'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
-    text += '\n  "/context"        Rewrites everything your AI has currently committed to memory.'
-    text += '\n  "/editcontext     Lets you rewrite specific parts of the context.'
+    text += '\n  "/context"        Edit what your AI has currently committed to memory.'
     return text
 
 
@@ -373,17 +372,6 @@ def play_aidungeon_2():
                         console_print(story_manager.story.story_start)
                     continue
 
-                elif command == "alter": 
-                    if len(story_manager.story.results) is 0: 
-                        console_print("There's no results to alter.\n") 
-                        continue 
-     
-                    console_print("\nThe AI thinks this was what happened:\n") 
-                    print(story_manager.story.results[-1]) 
-                    result = input("\nWhat actually happened was (use \\n for new line):\n\n") 
-                    result = result.replace("\\n", "\n") 
-                    story_manager.story.results[-1] = result 
-
                 elif command == "infto":
 
                     if len(args) != 1:
@@ -457,15 +445,10 @@ def play_aidungeon_2():
 
                     continue
 
-                elif command == "context":
-                    console_print("Current story context: \n" + story_manager.get_context() + "\n")
-                    new_context = input("Enter a new context describing the general status of your character and story: ")
-                    story_manager.set_context(new_context)
-                    console_print("Story context updated.\n")
-
-                elif command == 'editcontext':
+                elif command == 'context':
                     try:
                         current_context = story_manager.get_context()
+                        console_print("Current story context: \n")
                         new_context = string_edit(current_context)
                         if new_context is None:
                             pass
@@ -476,8 +459,9 @@ def play_aidungeon_2():
                         console_print("Something went wrong, cancelling.")
                         pass
 
-                elif command == 'alter2':
+                elif command == 'alter':
                     try:
+                        console_print("\nThe AI thinks this was what happened:\n")
                         try:
                             current_result = story_manager.story.results[-1]
                         except IndexError:

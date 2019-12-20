@@ -329,17 +329,17 @@ def string_edit(text):
         if i != "<break>":
             sentence_choices.append(i)
 
+    console_print(text)
     if len(sentence_choices) == 0:
-        console_print("Nothing to edit. Would you like to add a sentence?\n0) Add a new sentence\n1) Cancel\n")
+        console_print("No text to edit. Would you like to write something?\n0) Write new text\n1) Cancel\n")
         choice = get_num_options(2)
         if choice == 0:
-            choice = 2
-        else:
             choice = 3
+        else:
+            choice = 4
     else:
-        console_print(text)
-        console_print("\n0) Edit a sentence\n1) Remove a sentence\n2) Add a new sentence\n3) Cancel\n")
-        choice = get_num_options(4)
+        console_print("\n0) Edit a sentence\n1) Remove a sentence\n2) Add a new sentence\n3) Rewrite all\n4) Cancel\n")
+        choice = get_num_options(5)
 
     if choice == 0:
         console_print("Pick a sentence to edit:\n")
@@ -349,6 +349,7 @@ def string_edit(text):
         console_print("\n" + sentence_choices[choice])
         new_sentence = input("\nWrite the new sentence:\n")
         new_sentence = new_sentence.strip()
+        new_sentence = new_sentence.replace("  ", " ")
         if new_sentence != "":
             if new_sentence[-1] not in [".", "!", "?", ",", "\"", "\'"]:
                 new_sentence += "."
@@ -362,11 +363,17 @@ def string_edit(text):
     elif choice == 2:
         new_sentence = input("Write a new sentence:\n")
         new_sentence = new_sentence.strip()
+        new_sentence = new_sentence.replace("  ", " ")
         if new_sentence != "":
             if new_sentence[-1] not in [".", "!", "?", ",", "\"", "\'"]:
                 new_sentence += "."
             sentences.append("")
             sentence_choices.append(new_sentence)
+    elif choice == 3:
+        new_text = (input("Enter the new text (use \\n for new line):\n"))
+        new_text = new_text.replace("  ", " ")
+        new_text = new_text.replace("\\n", "\n")
+        return new_text
     else:
         console_print("Cancelled.\n")
         return
