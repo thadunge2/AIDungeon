@@ -404,6 +404,7 @@ def play_aidungeon_2():
                     else:
                         if story_manager.encryptor is not None:
                             salt = story_manager.load_salt(load_ID)
+                            password = getpass.getpass("Enter password (blank to disable encryption): ")
                             story_manager.set_encryption(salt_password(password, salt)[0], salt)
                             result = story_manager.load_from_storage(load_ID)
                         else:
