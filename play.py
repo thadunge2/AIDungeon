@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
-import sys
 import random
+import sys
 import time
 
 from generator.gpt2.gpt2_generator import *
@@ -57,7 +57,6 @@ def select_game():
 
     if choice == 0:
         setting_key, character_key, name = random_story(data)
-
     else:
         # User-selected story...
         print("\n\nPick a setting.")
@@ -105,12 +104,27 @@ def select_game():
     return False, setting_key, character_key, name, character, setting_description
 
 
-def get_curated_exposition(setting_key, character_key, name, character, setting_description):
+def get_custom_prompt():
+    context = ""
+    console_print(
+        "\nEnter a prompt that describes who you are and the first couple sentences of where you start "
+        "out ex:\n 'You are a knight in the kingdom of Larion. You are hunting the evil dragon who has been "
+        + "terrorizing the kingdom. You enter the forest searching for the dragon and see' "
+    )
+    prompt = input("Starting Prompt: ")
+    return context, prompt
+
+
+def get_curated_exposition(
+    setting_key, character_key, name, character, setting_description
+):
     name_token = "<NAME>"
     if (
         character_key == "noble"
         or character_key == "knight"
         or character_key == "wizard"
+        or character_key == "peasant"
+        or character_key == "rogue"
     ):
         context = grammars.generate(setting_key, character_key, "context") + "\n\n"
         context = context.replace(name_token, name)
@@ -241,28 +255,19 @@ def play_aidungeon_2():
                 split = action[1:].split(" ")  # removes preceding slash
                 command = split[0].lower()
                 args = split[1:]
-                if command == "restart":
-                    while True:
-                        try:
-                            rating = input("Please rate the story quality from 1-10: ")
-                            rating_float = max(min(float(rating), 10), 1)
-                        except ValueError:
-                            print("Please return a valid number.")
-                        else:
-                            story_manager.story.rating = rating_float
-                            break
+                if command == "reset":
+                    story_manager.story.get_rating()
                     break
 
+                elif command == "restart":
+                    story_manager.story.actions = []
+                    story_manager.story.results = []
+                    console_print("Game restarted.")
+                    console_print(story_manager.story.story_start)
+                    continue
+
                 elif command == "quit":
-                    while True:
-                        try:
-                            rating = input("Please rate the story quality from 1-10: ")
-                            rating_float = max(min(float(rating), 10), 1)
-                        except ValueError:
-                            print("Please return a valid number.")
-                        else:
-                            story_manager.story.rating = rating_float
-                            break
+                    story_manager.story.get_rating()
                     exit()
 
                 elif command == "saving":
@@ -580,6 +585,7 @@ def play_aidungeon_2():
 
                 if player_won(result):
                     console_print(result + "\n CONGRATS YOU WIN")
+                    story_manager.story.get_rating()
                     break
                 elif player_died(result):
                     console_print(result)
@@ -592,6 +598,7 @@ def play_aidungeon_2():
                     console_print("Which do you choose? ")
                     choice = get_num_options(2)
                     if choice == 0:
+                        story_manager.story.get_rating()
                         break
                     else:
                         console_print("Sorry about that...where were we?")
