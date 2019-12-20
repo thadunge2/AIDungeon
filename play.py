@@ -30,7 +30,7 @@ def splash():
 
 def salt_password(password):
     password = password.encode()
-    salt = b'\xaes\xff\f9/11wasaninsidejob\x14nn\xfe'
+    salt = os.urandom(32)
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
