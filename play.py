@@ -9,6 +9,11 @@ from story import grammars
 from story.story_manager import *
 from story.utils import *
 from playsound import playsound
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
+import base64
+import getpass
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -21,6 +26,19 @@ def splash():
         return "load"
     else:
         return "new"
+
+
+def salt_password(password):
+    password = password.encode()
+    salt = os.urandom(32)
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+        backend=default_backend()
+    )
+    return base64.urlsafe_b64encode(kdf.derive(password))
 
 
 def random_story(story_data):
@@ -170,6 +188,7 @@ def instructions():
     text += '\n  "/restart"        Starts a new game and saves your current one'
     text += '\n  "/cloud off/on"   Turns off and on cloud saving when you use the "save" command'
     text += '\n  "/saving off/on"  Turns off and on saving'
+    text += '\n  "/encrypt"        Turns on encryption when saving and loading'
     text += '\n  "/save"           Makes a new save of your game and gives you the save ID'
     text += '\n  "/load"           Asks for a save ID and loads the game if the ID is valid'
     text += '\n  "/print"          Prints a transcript of your adventure'
@@ -200,7 +219,7 @@ def play_aidungeon_2():
 
     print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
     generator = GPT2Generator()
-    story_manager = UnconstrainedStoryManager(generator)
+    story_manager = UnconstrainedStoryManager(generator, upload_story=upload_story, cloud=False)
     print("\n")
 
     with open("opening.txt", "r", encoding="utf-8") as file:
@@ -240,13 +259,23 @@ def play_aidungeon_2():
 
             else:
                 load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")
-                if load_ID.startswith("gs://"):
-                    result = story_manager.load_new_story(load_ID[5:], upload_story=upload_story, cloud=True)
-                    story_manager.story.cloud = True
-                else:
-                    result = story_manager.load_new_story(load_ID, upload_story=upload_story)
                 print("\nLoading Game...\n")
-                print(result)
+                if load_ID.startswith("gs://"):
+                    story_manager.cloud = True
+                    load_ID = load_ID[5:]
+                result = story_manager.load_from_storage(load_ID)
+                if result is None:
+                    password = getpass.getpass("Enter password (if this is an encrypted save): ")
+                    if len(password) > 0:
+                        story_manager.set_encryption(salt_password(password))
+                        result = story_manager.load_from_storage(load_ID)
+                        if result is not None:
+                            print('encryption set (disable with /encrypt)')
+                            print(result)
+                        else:
+                            console_print("File not found, or invalid password")
+                else:
+                    print(result)
 
         while True:
             sys.stdin.flush()
@@ -276,35 +305,44 @@ def play_aidungeon_2():
                                       ("off" if upload_story else "on") + " to change.")
                     elif args[0] == "off":
                         upload_story = False
-                        story_manager.story.upload_story = False
+                        story_manager.upload_story = False
                         console_print("Saving turned off.")
                     elif args[0] == "on":
                         upload_story = True
-                        story_manager.story.upload_story = True
+                        story_manager.upload_story = True
                         console_print("Saving turned on.")
                     else:
                         console_print(f"Invalid argument: {args[0]}")
 
                 elif command == "cloud":
                     if len(args) == 0:
-                        console_print("Cloud saving is " + ("enabled." if story_manager.story.cloud else "disabled.") + " Use /cloud " +
-                                      ("off" if story_manager.story.cloud else "on") + " to change.")
+                        console_print("Cloud saving is " + ("enabled." if story_manager.cloud else "disabled.") + " Use /cloud " +
+                                      ("off" if story_manager.cloud else "on") + " to change.")
                     elif args[0] == "off":
-                        story_manager.story.cloud = False
+                        story_manager.cloud = False
                         console_print("Cloud saving turned off.")
                     elif args[0] == "on":
-                        story_manager.story.cloud = True
+                        story_manager.cloud = True
                         console_print("Cloud saving turned on.")
                     else:
                         console_print(f"Invalid argument: {args[0]}")
 
+                elif command == "encrypt":
+                    password = getpass.getpass("Enter password (blank to disable encryption): ")
+                    if len(password) == 0:
+                        story_manager.set_encryption(None)
+                        console_print("Encryption disabled.")
+                    else:
+                        story_manager.set_encryption(salt_password(password))
+                        console_print("Now using password for encryption/decryption.")
 
                 elif command == "help":
                     console_print(instructions())
 
                 elif command == "showstats":
                     text = "saving is set to:      " + str(upload_story)
-                    text += "\ncloud saving is set to:" + str(story_manager.story.cloud)
+                    text += "\ncloud saving is set to:" + str(story_manager.cloud)
+                    text += "\nencryption is set to:  " + str(story_manager.has_encryption())
                     text += "\nping is set to:        " + str(ping)
                     text += "\ncensor is set to:      " + str(generator.censor)
                     text += "\ntemperature is set to: " + str(story_manager.generator.temp)
@@ -356,17 +394,20 @@ def play_aidungeon_2():
                         load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")
                     else:
                         load_ID = args[0]
-                    if load_ID.startswith("gs://"):
-                        story_manager.story.cloud = True
-                        result = story_manager.story.load_from_storage(load_ID[5:])
-                    else:
-                        result = story_manager.story.load_from_storage(load_ID)
                     console_print("\nLoading Game...\n")
-                    console_print(result)
+                    if load_ID.startswith("gs://"):
+                        story_manager.cloud = True
+                        result = story_manager.load_from_storage(load_ID[5:])
+                    else:
+                        result = story_manager.load_from_storage(load_ID)
+                    if result is None:
+                        console_print("File not found, or invalid encryption password")
+                    else:
+                        console_print(result)
 
                 elif command == "save":
                     if upload_story:
-                        save_id = story_manager.story.save_to_storage()
+                        save_id = story_manager.save_story()
                         console_print("Game saved.")
                         console_print(f"To load the game, type 'load' and enter the following ID: {save_id}")
                     else:
