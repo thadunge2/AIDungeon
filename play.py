@@ -28,9 +28,9 @@ def splash():
         return "new"
 
 
-def salt_password(password):
+def salt_password(password, old_salt = None):
     password = password.encode()
-    salt = os.urandom(32)
+    salt = old_salt if old_salt is not None else os.urandom(32)
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -38,7 +38,7 @@ def salt_password(password):
         iterations=100000,
         backend=default_backend()
     )
-    return base64.urlsafe_b64encode(kdf.derive(password))
+    return base64.urlsafe_b64encode(kdf.derive(password)), salt
 
 
 def random_story(story_data):
@@ -267,7 +267,8 @@ def play_aidungeon_2():
                 if result is None:
                     password = getpass.getpass("Enter password (if this is an encrypted save): ")
                     if len(password) > 0:
-                        story_manager.set_encryption(salt_password(password))
+                        salt = story_manager.load_salt(load_ID)
+                        story_manager.set_encryption(salt_password(password, salt)[0], salt)
                         result = story_manager.load_from_storage(load_ID)
                         if result is not None:
                             print('encryption set (disable with /encrypt)')
@@ -334,7 +335,8 @@ def play_aidungeon_2():
                         story_manager.set_encryption(None)
                         console_print("Encryption disabled.")
                     else:
-                        story_manager.set_encryption(salt_password(password))
+                        password, salt = salt_password(password)
+                        story_manager.set_encryption(password, salt)
                         console_print("Now using password for encryption/decryption.")
 
                 elif command == "help":
@@ -400,7 +402,12 @@ def play_aidungeon_2():
                         story_manager.cloud = True
                         result = story_manager.load_from_storage(load_ID[5:])
                     else:
-                        result = story_manager.load_from_storage(load_ID)
+                        if story_manager.encryptor is not None:
+                            salt = story_manager.load_salt(load_ID)
+                            story_manager.set_encryption(salt_password(password, salt)[0], salt)
+                            result = story_manager.load_from_storage(load_ID)
+                        else:
+                            result = story_manager.load_from_storage(load_ID)
                     if result is None:
                         console_print("File not found, or invalid encryption password")
                     else:
