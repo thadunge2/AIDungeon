@@ -289,6 +289,7 @@ def play_aidungeon_2():
                 args = split[1:]
                 if command == "reset":
                     story_manager.story.get_rating()
+                    story_manager.print_save()
                     break
 
                 elif command == "restart":

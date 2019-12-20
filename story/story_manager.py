@@ -122,7 +122,7 @@ class StoryManager:
         self.upload_story = upload_story
         self.encryptor = None
         self.salt = None
-        atexit.register(self.on_exit)
+        atexit.register(self.print_save)
 
     def start_new_story(
         self, story_prompt, context="", game_state=None, upload_story=False
@@ -233,7 +233,7 @@ class StoryManager:
     def has_encryption(self):
         return self.encryptor is not None
 
-    def on_exit(self):
+    def print_save(self):
         if self.upload_story:
             story_id = self.save_story()
             console_print("Game saved.")
