@@ -159,10 +159,14 @@ class GPT2Generator:
         )
         
     def change_temp(self, t):
+        changed = t != self.temp
         self.temp = t
+        return changed
         
     def change_top_p(self, t):
+        changed = t != self.top_p
         self.top_p = t
+        return changed
 
     def change_cut_actions(self, flag):
         self.cut_actions = flag

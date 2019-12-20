@@ -5,16 +5,20 @@ import uuid
 from subprocess import Popen
 
 from story.utils import *
+import atexit
+
+from cryptography.fernet import Fernet, InvalidToken
+
+save_path = "./saves/"
 
 
 class Story:
     def __init__(
-        self, story_start, context="", seed=None, game_state=None, upload_story=False, cloud=False
+        self, story_start, context="", seed=None, game_state=None
     ):
         self.story_start = story_start
         self.context = context
         self.rating = -1
-        self.upload_story = upload_story
 
         # list of actions. First action is the prompt length should always equal that of story blocks
         self.actions = []
@@ -32,15 +36,6 @@ class Story:
             game_state = dict()
         self.game_state = game_state
         self.memory = 20
-        self.cloud = cloud
-
-    def __del__(self):
-        if self.upload_story:
-            self.save_to_storage()
-            console_print("Game saved.")
-            console_print(
-                "To load the game, type 'load' and enter the following ID: " + self.uuid
-            )
 
     def init_from_dict(self, story_dict):
         self.story_start = story_dict["story_start"]
@@ -88,7 +83,7 @@ class Story:
 
         return "".join(story_list)
 
-    def to_json(self):
+    def to_dict(self):
         story_dict = {}
         story_dict["story_start"] = self.story_start
         story_dict["seed"] = self.seed
@@ -100,87 +95,44 @@ class Story:
         story_dict["context"] = self.context
         story_dict["uuid"] = self.uuid
         story_dict["rating"] = self.rating
+        return story_dict
 
-        return json.dumps(story_dict)
+    def to_json(self):
+        return json.dumps(self.to_dict())
 
-    def save_to_storage(self):
-        self.uuid = str(uuid.uuid1())
-
-        save_path = "./saves/"
-
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-
-        story_json = self.to_json()
-        file_name = "story" + str(self.uuid) + ".json"
-        f = open(os.path.join(save_path, file_name), "w")
-        f.write(story_json)
-        f.close()
-
-        FNULL = open(os.devnull, "w")
-        if self.cloud:
-            p = Popen(
-                ["gsutil", "cp", os.path.join(save_path, file_name), "gs://aidungeonstories"],
-                stdout=FNULL,
-                stderr=subprocess.STDOUT,
-            )
-        return self.uuid
-
-    def load_from_storage(self, story_id):
-        save_path = "./saves/"
-
-        if not os.path.exists(save_path):
-            return "Error save not found."
-
-        file_name = "story" + story_id + ".json"
-        if self.cloud:
-            cmd = "gsutil cp gs://aidungeonstories/" + file_name + " " + save_path
-            os.system(cmd)
-        exists = os.path.isfile(os.path.join(save_path, file_name))
-
-        if exists:
-            with open(os.path.join(save_path, file_name), "r") as fp:
-                game = json.load(fp)
-            self.init_from_dict(game)
-            return str(self)
-        else:
-            return "Error save not found."
+    def get_rating(self):
+        while True:
+            try:
+                rating = input("Please rate the story quality from 1-10: ")
+                rating_float = max(min(float(rating), 10), 1)
+            except ValueError:
+                print("Please return a valid number.")
+            else:
+                self.rating = rating_float
+                return
 
 
 class StoryManager:
-    def __init__(self, generator):
+    def __init__(self, generator, upload_story=True, cloud=False):
         self.generator = generator
         self.story = None
         self.inference_timeout = 120
+        self.cloud = cloud
+        self.upload_story = upload_story
+        self.encryptor = None
+        atexit.register(self.on_exit)
 
     def start_new_story(
         self, story_prompt, context="", game_state=None, upload_story=False
     ):
+        self.upload_story = upload_story
         block = self.generator.generate(context + story_prompt)
         block = cut_trailing_sentence(block)
         self.story = Story(
             context + story_prompt + block,
             context=context,
-            game_state=game_state,
-            upload_story=upload_story,
+            game_state=game_state
         )
-        return str(self.story)
-
-    def load_new_story(self, story_id, upload_story=False, cloud=False):
-        file_name = os.path.join("saves","story" + story_id + ".json")
-        if cloud:
-            file_name = "story" + story_id + ".json"
-            cmd = "gsutil cp gs://aidungeonstories/" + file_name + " ."
-            os.system(cmd)
-        exists = os.path.isfile(file_name)
-
-        if not exists:
-            return "Error save not found."
-
-        with open(file_name, "r") as fp:
-            game = json.load(fp)
-        self.story = Story("", upload_story=upload_story)
-        self.story.init_from_dict(game)
         return str(self.story)
 
     def load_story(self, story, from_json=False):
@@ -190,6 +142,91 @@ class StoryManager:
         else:
             self.story = story
         return str(story)
+
+    def load_from_storage(self, story_id):
+        if not os.path.exists(save_path):
+            return None
+
+        file_name = "story" + story_id + (".json" if self.encryptor is None else ".bin")
+        if self.cloud:
+            cmd = "gsutil cp gs://aidungeonstories/" + file_name + " " + save_path
+            os.system(cmd)
+
+        exists = os.path.isfile(os.path.join(save_path, file_name))
+
+        if exists:
+            if self.encryptor is not None:
+                with open(os.path.join(save_path, file_name), "rb") as fp:
+                    story_encrypted = fp.read()
+                    try:
+                        story_decrypted = self.encryptor.decrypt(story_encrypted)
+                    except InvalidToken:
+                        return None
+                    game = json.loads(story_decrypted.decode())
+            else:
+                with open(os.path.join(save_path, file_name), "r") as fp:
+                    game = json.load(fp)
+            self.story = Story("")
+            self.story.init_from_dict(game)
+            changed = False
+            if "top_p" in game.keys():
+                changed = changed or self.generator.change_top_p(game["top_p"])
+            if "temp" in game.keys():
+                changed = changed or self.generator.change_temp(game["temp"])
+            if changed:
+                console_print("Please wait while the AI model is regenerated...")
+                self.generator.gen_output()
+            return str(self.story)
+        else:
+            return None
+
+    def save_story(self):
+        story_id = str(uuid.uuid1())
+        self.story.uuid = story_id
+        story_dict = self.story.to_dict()
+        story_dict["top_p"] = self.generator.top_p
+        story_dict["temp"] = self.generator.temp
+
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
+        story_json = json.dumps(story_dict)
+        if self.encryptor is not None:
+            story_encoded = story_json.encode()
+            story_encrypted = self.encryptor.encrypt(story_encoded)
+            file_name = "story" + str(story_id) + ".bin"
+            with open(os.path.join(save_path, file_name), "wb") as sf:
+                sf.write(story_encrypted)
+        else:
+            file_name = "story" + str(story_id) + ".json"
+            with open(os.path.join(save_path, file_name), "w") as sf:
+                sf.write(story_json)
+
+        FNULL = open(os.devnull, "w")
+        if self.cloud:
+            p = Popen(
+                ["gsutil", "cp", os.path.join(save_path, file_name), "gs://aidungeonstories"],
+                stdout=FNULL,
+                stderr=subprocess.STDOUT,
+            )
+        return story_id
+
+    def set_encryption(self, key):
+        if key is None:
+            self.encryptor = None
+        else:
+            self.encryptor = Fernet(key)
+
+    def has_encryption(self):
+        return self.encryptor is not None
+
+    def on_exit(self):
+        if self.upload_story:
+            story_id = self.save_story()
+            console_print("Game saved.")
+            console_print(
+                "To load the game, type 'load' and enter the following ID: " + story_id
+            )
 
     def json_story(self):
         return self.story.to_json()
