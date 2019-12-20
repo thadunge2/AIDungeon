@@ -358,21 +358,35 @@ def string_edit(text):
         console_print("Pick a sentence to edit:\n")
         for i in range(len(sentence_choices)):
             console_print(str(i) + ") " + sentence_choices[i])
-        choice = get_num_options(len(sentence_choices))
-        console_print("\n" + sentence_choices[choice])
-        new_sentence = input("\nWrite the new sentence:\n")
-        new_sentence = new_sentence.strip()
-        new_sentence = new_sentence.replace("  ", " ")
-        if new_sentence != "":
-            if new_sentence[-1] not in [".", "!", "?", ",", "\"", "\'"]:
-                new_sentence += "."
-            sentence_choices[choice] = new_sentence
+        console_print(str(len(sentence_choices)) + ") Cancel")
+        choice = get_num_options(len(sentence_choices) + 1)
+        while choice != len(sentence_choices):
+            console_print("\n" + sentence_choices[choice])
+            new_sentence = input("\nWrite the new sentence:\n")
+            new_sentence = new_sentence.strip()
+            new_sentence = new_sentence.replace("  ", " ")
+            if new_sentence != "":
+                if new_sentence[-1] not in [".", "!", "?", ",", "\"", "\'"]:
+                    new_sentence += "."
+                sentence_choices[choice] = new_sentence
+            for i in range(len(sentence_choices)):
+                console_print(str(i) + ") " + sentence_choices[i])
+            console_print(str(len(sentence_choices)) + ") Cancel")
+            choice = get_num_options(len(sentence_choices) + 1)
     elif choice == 1:
         console_print("Pick a sentence to remove:\n")
         for i in range(len(sentence_choices)):
             console_print(str(i) + ") " + sentence_choices[i])
-        choice = get_num_options(len(sentence_choices))
-        sentence_choices[choice] = ""
+        console_print(str(len(sentence_choices)) + ") Cancel")
+        choice = get_num_options(len(sentence_choices) + 1)
+        while choice != len(sentence_choices):
+            sentence_choices[choice] = ""
+            console_print("\n")
+            for i in range(len(sentence_choices)):
+                if sentence_choices[i] != "":
+                    console_print(str(i) + ") " + sentence_choices[i])
+            console_print(str(len(sentence_choices)) + ") Cancel")
+            choice = get_num_options(len(sentence_choices) + 1)
     elif choice == 2:
         new_sentence = input("Write a new sentence:\n")
         new_sentence = new_sentence.strip()
