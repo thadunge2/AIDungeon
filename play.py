@@ -264,21 +264,24 @@ def play_aidungeon_2():
                 if load_ID.startswith("gs://"):
                     story_manager.cloud = True
                     load_ID = load_ID[5:]
+                story_manager.set_encryption(None)
                 result = story_manager.load_from_storage(load_ID)
                 if result is None:
                     password = getpass.getpass("Enter password (if this is an encrypted save): ")
                     if len(password) > 0:
                         salt = story_manager.load_salt(load_ID)
-                        story_manager.set_encryption(salt_password(password, salt)[0], salt)
-                        result = story_manager.load_from_storage(load_ID)
-                        if result is not None:
-                            print('encryption set (disable with /encrypt)')
-                            print(result)
-                        else:
-                            console_print("File not found, or invalid password")
-                            story_manager.encryptor = None
+                        if salt is not None:
+                            story_manager.set_encryption(salt_password(password, salt)[0], salt)
+                            result = story_manager.load_from_storage(load_ID)
+                            if result is not None:
+                                print('encryption set (disable with /encrypt)')
+                                print(result)
                 else:
                     print(result)
+
+                if story_manager.story is None:
+                    console_print("File not found, or invalid password")
+                    story_manager.set_encryption(None)
 
         while True:
             sys.stdin.flush()
@@ -338,7 +341,7 @@ def play_aidungeon_2():
                     else:
                         password, salt = salt_password(password)
                         story_manager.set_encryption(password, salt)
-                        console_print("Now using password for encryption/decryption.")
+                        console_print("Updated password for encryption/decryption.")
 
                 elif command == "help":
                     console_print(instructions())
@@ -401,17 +404,17 @@ def play_aidungeon_2():
                     console_print("\nLoading Game...\n")
                     if load_ID.startswith("gs://"):
                         story_manager.cloud = True
-                        result = story_manager.load_from_storage(load_ID[5:])
-                    else:
-                        if story_manager.encryptor is not None:
-                            salt = story_manager.load_salt(load_ID)
+                        load_ID = load_ID[5:]
+                    if story_manager.has_encryption():
+                        salt = story_manager.load_salt(load_ID)
+                        if salt is not None:
                             password = getpass.getpass("Enter the password you saved this file with: ")
                             story_manager.set_encryption(salt_password(password, salt)[0], salt)
                             result = story_manager.load_from_storage(load_ID)
-                        else:
-                            result = story_manager.load_from_storage(load_ID)
+                    else:
+                        result = story_manager.load_from_storage(load_ID)
                     if result is None:
-                        console_print("File not found, or invalid encryption password")
+                        console_print("File not found, or invalid encryption password set")
                     else:
                         console_print(result)
 
