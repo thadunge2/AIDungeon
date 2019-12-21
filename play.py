@@ -15,6 +15,8 @@ from cryptography.hazmat.backends import default_backend
 import base64
 import getpass
 
+from banners.bannerRan import *
+
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
@@ -223,7 +225,10 @@ def play_aidungeon_2():
     story_manager = UnconstrainedStoryManager(generator, upload_story=upload_story, cloud=False)
     print("\n")
 
-    with open("opening.txt", "r", encoding="utf-8") as file:
+     ranBanner =  bannerRan()
+     openingPass = (ranBanner.banner_number)
+        
+    with open(openingPass, "r", encoding="utf-8") as file:
         starter = file.read()
     print(starter)
 
