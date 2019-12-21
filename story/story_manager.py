@@ -146,14 +146,13 @@ class StoryManager:
         return str(story)
 
     def load_salt(self, story_id):
-        salt = ""
         file_name = "story" + story_id + ".bin"
         exists = os.path.isfile(os.path.join(save_path, file_name))
         if exists:
             with open(os.path.join(save_path, file_name), "rb") as fp:
                 story_encrypted = fp.read()
-                salt = base64.urlsafe_b64decode(story_encrypted[:44])
-        return salt
+                return base64.urlsafe_b64decode(story_encrypted[:44])
+        return None
 
     def load_from_storage(self, story_id):
         if not os.path.exists(save_path):
