@@ -224,8 +224,8 @@ def play_aidungeon_2():
     story_manager = UnconstrainedStoryManager(generator, upload_story=upload_story, cloud=False)
     print("\n")
 
-     ranBanner =  bannerRan()
-     openingPass = (ranBanner.banner_number)
+    ranBanner =  bannerRan()
+    openingPass = (ranBanner.banner_number)
         
     with open(openingPass, "r", encoding="utf-8") as file:
         starter = file.read()
