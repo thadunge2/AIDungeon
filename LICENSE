@@ -1,5 +1,6 @@
 The below license is applicable to all parts of this software which are forked
-from the original AIDungeon/AIDungeon repository by Nick Walton.
+from the original AIDungeon/AIDungeon repository by Nick Walton, and to commit
+hash 679efe69b953b39ad7de3c21992feca1bef9d78a on thadunge2/AIDungeon.
 
 Copyright (c) 2019 Nick Walton
 
@@ -22,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 The below license is applicable to all original parts of this software which have
-been added or modified by its maintainers.
+been added or modified by its maintainers, and to all other covered works it applies to..
 
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
