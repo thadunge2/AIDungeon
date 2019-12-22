@@ -13,7 +13,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 class GPT2Generator:
-    def __init__(self, generate_num=80, temperature=0.4, top_p=0.9, censor=False):
+    def __init__(self, generate_num=80, temperature=0.4, top_p=0.9, censor=False, model_name="model_v5"):
         self.generate_num = generate_num
         self.default_gen_num = generate_num
         self.temp = temperature
@@ -21,15 +21,14 @@ class GPT2Generator:
         self.top_p = top_p
         self.censor = censor
 
-        self.model_name = "model_v5"
+        self.model_name = model_name
         self.model_dir = "generator/gpt2/models"
-        self.checkpoint_path = os.path.join(self.model_dir, self.model_name)
+        self.model_dir = os.path.expanduser(os.path.expandvars(self.model_dir))
 
         self.batch_size = 1
         self.samples = 1
 
-        models_dir = os.path.expanduser(os.path.expandvars(self.model_dir))
-        self.enc = encoder.get_encoder(self.model_name, models_dir)
+        self.enc = encoder.get_encoder(self.model_name, self.model_dir)
 
         config = tf.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
@@ -40,10 +39,10 @@ class GPT2Generator:
         # tf.set_random_seed(seed)
         self.gen_output()
 
-        saver = tf.train.Saver()
-        ckpt = tf.train.latest_checkpoint(os.path.join(models_dir, self.model_name))
-        saver.restore(self.sess, ckpt)
-
+        self.saver = tf.train.Saver()
+        ckpt = tf.train.latest_checkpoint(os.path.join(self.model_dir, self.model_name))
+        self.saver.restore(self.sess, ckpt)
+        
     def prompt_replace(self, prompt):
         # print("\n\nBEFORE PROMPT_REPLACE:")
         # print(repr(prompt))
