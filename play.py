@@ -218,9 +218,7 @@ def play_aidungeon_2():
 
     upload_story = True
     ping = False
-
-    print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
-    generator = GPT2Generator()
+    generator = None
     story_manager = UnconstrainedStoryManager(generator, upload_story=upload_story, cloud=False)
     print("\n")
 
@@ -246,6 +244,19 @@ def play_aidungeon_2():
                     context, prompt = character, setting_description
                 else:
                     context, prompt = get_curated_exposition(setting_key, character_key, name, character, setting_description)
+                if generator is None:
+                    generator_config = input("Would you like to select a different generator? (default: model_v5) (y/N)")
+                    if generator_config.lower() == "y":
+                        try:
+                            print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
+                            generator = GPT2Generator(model_name=input("Model name: "))
+                        except:
+                            console_print("Failed to set model. Make sure it is installed in generator/gpt2/models/")
+                            continue
+                    else:
+                        print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
+                        generator = GPT2Generator()
+                    story_manager.generator = generator
                 change_config = input("Would you like to enter a new temp and top_p now? (default: 0.4, 0.9) (y/N) ")
                 if change_config.lower() == "y":
                     story_manager.generator.change_temp(float(input("Enter a new temp (default 0.4): ") or 0.4))
@@ -356,9 +367,10 @@ def play_aidungeon_2():
                     text += "\ncloud saving is set to:" + str(story_manager.cloud)
                     text += "\nencryption is set to:  " + str(story_manager.has_encryption())
                     text += "\nping is set to:        " + str(ping)
-                    text += "\ncensor is set to:      " + str(generator.censor)
+                    text += "\ncensor is set to:      " + str(story_manager.generator.censor)
                     text += "\ntemperature is set to: " + str(story_manager.generator.temp)
                     text += "\ntop_p is set to:       " + str(story_manager.generator.top_p)
+                    text += "\ncurrent model is:      " + story_manager.generator.model_name
                     print(text)
 
                 elif command == "censor":

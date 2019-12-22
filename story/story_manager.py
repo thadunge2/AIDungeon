@@ -8,6 +8,7 @@ from story.utils import *
 import atexit
 
 from cryptography.fernet import Fernet, InvalidToken
+from generator.gpt2.gpt2_generator import GPT2Generator
 import base64
 
 save_path = "./saves/"
@@ -179,6 +180,19 @@ class StoryManager:
             self.story = Story("")
             self.story.init_from_dict(game)
             changed = False
+            if "model" in game.keys():
+                if self.generator is not None:
+                    if self.generator.model_name != game["model"]:
+                        console_print("Warning: Save was generated using the model " + game["model"] + "; load this save in a new session to use this model.")
+                else:
+                    try:
+                        self.generator = GPT2Generator(model_name=game["model"])
+                    except:
+                        console_print("Warning: The model used by the save (" + game["model"] + ") is not installed. Using the default.")
+                        self.generator = GPT2Generator()
+            else:
+                if self.generator is None:
+                    self.generator = GPT2Generator()
             if "top_p" in game.keys():
                 changed = changed or self.generator.change_top_p(game["top_p"])
             if "temp" in game.keys():
@@ -196,6 +210,7 @@ class StoryManager:
         story_dict = self.story.to_dict()
         story_dict["top_p"] = self.generator.top_p
         story_dict["temp"] = self.generator.temp
+        story_dict["model"] = self.generator.model_name
 
         if not os.path.exists(save_path):
             os.makedirs(save_path)
