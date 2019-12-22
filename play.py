@@ -514,7 +514,7 @@ def play_aidungeon_2():
 
                 elif command == "raw":
                     if len(args) == 0:
-                        console_print("Raw input is " + ("enabled." if raw else "disabled."))
+                        console_print("Raw input is " + ("enabled." if story_manager.generator.raw else "disabled."))
                     elif args[0] == "off":
                         if not story_manager.generator.raw:
                             console_print("Raw input is already disabled.")
