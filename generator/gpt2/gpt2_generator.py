@@ -13,14 +13,14 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 class GPT2Generator:
-    def __init__(self, generate_num=80, temperature=0.4, top_p=0.9, censor=False):
+    def __init__(self, generate_num=80, temperature=0.4, top_p=0.9, censor=False, raw=False):
         self.generate_num = generate_num
         self.default_gen_num = generate_num
         self.temp = temperature
         #self.top_k = top_k
         self.top_p = top_p
         self.censor = censor
-
+        self.raw = raw
         self.model_name = "model_v5"
         self.model_dir = "generator/gpt2/models"
         self.checkpoint_path = os.path.join(self.model_dir, self.model_name)
@@ -68,7 +68,7 @@ class GPT2Generator:
         result = result.replace("\n\n", "\n")
         result = re.sub("(?<=\w)\.\.(?:\s|$)", ".", result)
         # result = first_to_second_person(result)
-        result = cut_trailing_sentence(result)
+        result = cut_trailing_sentence(result, self.raw)
         for sentence in actions:
             result = result.replace(sentence.strip()+" ", "")
         if len(result) == 0:
@@ -158,3 +158,6 @@ class GPT2Generator:
         changed = t != self.top_p
         self.top_p = t
         return changed
+
+    def change_raw(self, raw):
+        self.raw = raw
