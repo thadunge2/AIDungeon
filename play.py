@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-import os
+#!/usr/bin/env python3import os
 import random
 import sys
 import time
@@ -8,15 +7,8 @@ from generator.gpt2.gpt2_generator import *
 from story import grammars
 from story.story_manager import *
 from story.utils import *
-from playsound import playsound
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.backends import default_backend
-import base64
-import getpass
-
 from banners.bannerRan import *
-
+    
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
@@ -210,17 +202,14 @@ def instructions():
 
 
 def play_aidungeon_2():
-    console_print(
-        "AI Dungeon 2 will save and use your actions and game to continually improve AI Dungeon."
-        + " If you would like to disable this enter '/saving off' as an action. This will also turn off the "
-        + "ability to save games."
-    )
-
     upload_story = True
     ping = False
 
     print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
-    generator = GPT2Generator()
+    cuda = False
+    if torch.cuda.is_available():
+        cuda = input("\nIt looks like CUDA is available for your system. Would you like to use it? (y/N) ").lower() == "y"
+    generator = GPT2Generator(no_cuda=not cuda)
     story_manager = UnconstrainedStoryManager(generator, upload_story=upload_story, cloud=False)
     print("\n")
 
@@ -252,6 +241,11 @@ def play_aidungeon_2():
                     story_manager.generator.change_top_p(float(input("Enter a new top_p (default 0.9): ") or 0.9))
                     console_print("Please wait while the AI model is regenerated...")
                     story_manager.generator.gen_output()
+                console_print(
+                    "AI Dungeon 2 will save and use your actions and game to continually improve AI Dungeon."
+                    + " If you would like to disable this enter '/saving off' as an action. This will also turn off the "
+                    + "ability to save games."
+                )
                 console_print(instructions())
                 print("\nGenerating story...")
                 story_manager.generator.generate_num = 120
@@ -286,7 +280,7 @@ def play_aidungeon_2():
                 if story_manager.story is None:
                     console_print("File not found, or invalid password")
                     story_manager.set_encryption(None)
-
+        
         while True:
             sys.stdin.flush()
             action = input("> ").strip()
@@ -645,6 +639,42 @@ def play_aidungeon_2():
                     playsound('ping.mp3')
                 story_manager.generator.generate_num = story_manager.generator.default_gen_num
 
+def prepare_aidungeon_2():
+    if not os.path.exists(os.path.join("libraries","transformers")):
+        print("Looks like you didn't run the install script. Let's do that now.")
+        if os.system("sh install.sh") > 0:
+            print("Install failed. If you're running on Windows, then you'll need to install Git Bash.\n"
+            +"Using that, run this command:\n"
+            +("$ sh {}/install.sh".format(os.getcwd())).replace("\\","/"))
+            exit()
+            
+    from playsound import playsound
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.backends import default_backend
+    import base64
+    import getpass
+    import transformers
+    import torch
+    
+    if not os.path.exists(os.path.join("generator","gpt2","models","model_v5")):
+        print("Looks like you didn't download the AI model. Let's do that now.")
+        if os.system("sh download_model.sh") > 0:
+            print("Download failed. If you're running on Windows, then you'll need to install Git Bash.\n"
+            +"Using that, run this command:\n"
+            +("$ sh {}/download_model.sh".format(os.getcwd())).replace("\\","/"))
+            exit()
+            
+    if not os.path.exists(os.path.join("generator","gpt2","models","model_v5","pytorch-convert")):
+        print("Still using Tensorflow? No problem. Let us upgrade that for you.\nPlease wait...")
+        os.makedirs(os.path.join("generator","gpt2","models","model_v5","pytorch-convert"))
+        transformers.convert_gpt2_checkpoint_to_pytorch(os.path.join("generator","gpt2","models","model_v5"),
+                                                        os.path.join("generator","gpt2","gpt2-config.json"),
+                                                        os.path.join("generator","gpt2","models","model_v5","pytorch-convert"))
+        print("All done! You're now set up to use Torch + Transformers.\n\n")
+        
+    play_aidungeon_2()
+
 
 if __name__ == "__main__":
-    play_aidungeon_2()
+    prepare_aidungeon_2()

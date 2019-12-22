@@ -3,11 +3,11 @@ set -e
 cd "$(dirname "${0}")"
 BASE_DIR="$(pwd)"
 PACKAGES=(aria2 git unzip wget)
-# Tensorflow states 3.4.0 as the minimum version.
+# Pytorch suggests 3.5.0 as the minimum version.
 # This is also the minimum version with venv support.
 # 3.8.0 and up only includes tensorflow 2.0 and not 1.15
-MIN_PYTHON_VERS="3.4.0"
-MAX_PYTHON_VERS="3.7.9"
+MIN_PYTHON_VERS="3.5.0"
+MAX_PYTHON_VERS="3.8.0"
 
 version_check () {
 	MAX_VERS=$(echo -e "$(python3 --version | cut -d' ' -f2)\n$MAX_PYTHON_VERS\n$MIN_PYTHON_VERS"\
@@ -26,16 +26,11 @@ version_check () {
 }
 
 pip_install () {
-	if [ ! -d "./venv" ]; then
-		# Some distros have venv built into python so this isn't always needed.
-		if is_command 'apt-get'; then
-			apt-get install python3-venv
-		fi
-		python3 -m venv ./venv
-	fi
-	source "${BASE_DIR}/venv/bin/activate"
 	pip install --upgrade pip setuptools
 	pip install -r "${BASE_DIR}/requirements.txt"
+	git clone https://github.com/huggingface/transformers "${BASE_DIR}/libraries/transformers"
+	pip install --editable "${BASE_DIR}/libraries/transformers"
+	printf "\n\nfrom .convert_gpt2_original_tf_checkpoint_to_pytorch import convert_gpt2_checkpoint_to_pytorch" >> libraries/transformers/__init__.py
 }
 
 is_command() {

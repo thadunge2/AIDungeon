@@ -4,7 +4,8 @@ numpy
 profanityfilter
 pyyaml
 regex
-tensorflow==1.15
+tensorflow==2.0.0
+torch
 func_timeout
 playsound
 tracery
