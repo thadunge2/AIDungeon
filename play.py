@@ -246,11 +246,13 @@ def play_aidungeon_2():
                 else:
                     context, prompt = get_curated_exposition(setting_key, character_key, name, character, setting_description)
                 if generator is None:
-                    generator_config = input("Would you like to select a different generator? (default: model_v5) (y/N)")
+                    generator_config = input("Would you like to select a different generator? (default: model_v5) (y/N) ")
                     if generator_config.lower() == "y":
                         try:
+                            model_name = input("Model name: ")
+                            use_raw = input("Use raw narrative text as input for this model? (y/N) ")
                             print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
-                            generator = GPT2Generator(model_name=input("Model name: "))
+                            generator = GPT2Generator(model_name=model_name, raw=use_raw.lower()=="y")
                         except:
                             console_print("Failed to set model. Make sure it is installed in generator/gpt2/models/")
                             continue
