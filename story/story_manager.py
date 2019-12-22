@@ -183,6 +183,8 @@ class StoryManager:
                 changed = changed or self.generator.change_top_p(game["top_p"])
             if "temp" in game.keys():
                 changed = changed or self.generator.change_temp(game["temp"])
+            if "cut" in game.keys():
+                self.generator.change_cut_actions(game["cut"])
             if changed:
                 console_print("Please wait while the AI model is regenerated...")
                 self.generator.gen_output()
@@ -196,6 +198,7 @@ class StoryManager:
         story_dict = self.story.to_dict()
         story_dict["top_p"] = self.generator.top_p
         story_dict["temp"] = self.generator.temp
+        story_dict["cut"] = self.generator.cut_actions
 
         if not os.path.exists(save_path):
             os.makedirs(save_path)
