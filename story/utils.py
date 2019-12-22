@@ -90,6 +90,7 @@ def cut_trailing_quotes(text):
         final_ind = text.rfind('"')
         return text[:final_ind]
 
+
 def fix_trailing_quotes(text):
     num_quotes = text.count('"')
     if num_quotes % 2 == 0:
@@ -115,7 +116,7 @@ def split_first_sentence(text):
 def cut_trailing_action(text):
     lines = text.rstrip().split("\n")
     last_para = re.findall(r".+?(?:\.{1,3}|[!\?]|$)(?!\")", lines[-1])
-    if len(last_para) < 1:
+    if len(last_para) == 0:
         return ""
     last_line = last_para[-1].rstrip()
     if (
@@ -131,7 +132,7 @@ def cut_trailing_action(text):
     return text
 
 
-def cut_trailing_sentence(text):
+def cut_trailing_sentence(text, cut_actions=True):
     text = standardize_punctuation(text)
     last_punc = max(text.rfind("."), text.rfind("!"), text.rfind("?"))
     if last_punc <= 0:
@@ -143,16 +144,18 @@ def cut_trailing_sentence(text):
     elif et_token == 0:
         last_punc = min(last_punc, et_token)
 
-    act_token = text.find(">")
-    if act_token > 0:
-        last_punc = min(last_punc, act_token - 1)
-    elif act_token == 0:
-        last_punc = min(last_punc, act_token)
+    if cut_actions:
+        act_token = text.find(">")
+        if act_token > 0:
+            last_punc = min(last_punc, act_token - 1)
+        elif act_token == 0:
+            last_punc = min(last_punc, act_token)
 
     text = text[:last_punc+1]
 
     text = fix_trailing_quotes(text)
-    text = cut_trailing_action(text)
+    if cut_actions:
+        text = cut_trailing_action(text)
     return text
 
 
