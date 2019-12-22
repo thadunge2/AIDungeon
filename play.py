@@ -279,9 +279,9 @@ def play_aidungeon_2():
                             result = story_manager.load_from_storage(load_ID)
                             if result is not None:
                                 print('encryption set (disable with /encrypt)')
-                                print(result)
+                                console_print(result)
                 else:
-                    print(result)
+                    console_print(result)
 
                 if story_manager.story is None:
                     console_print("File not found, or invalid password")
@@ -289,7 +289,7 @@ def play_aidungeon_2():
 
         while True:
             sys.stdin.flush()
-            action = input("> ").strip()
+            action = input("\n> ").strip()
             if len(action) > 0 and action[0] == "/":
                 split = action[1:].split(" ")  # removes preceding slash
                 command = split[0].lower()
@@ -564,16 +564,16 @@ def play_aidungeon_2():
 
             else:
                 if action == "":
-                    action = "\n> \n"
+                    action = "> "
                     
                 elif action[0] == '!':
-                    action = "\n> \n" + action[1:].replace("\\n", "\n") + "\n"
+                    action = "> \n" + action[1:].replace("\\n", "\n")
 
                 elif action[0] != '"':
                     action = action.strip()
                     if not action.lower().startswith("you ") and not action.lower().startswith("i "):
                         action = "You " + action
-                        
+
                     action = action[0].lower() + action[1:]
 
                     if action[-1] not in [".", "?", "!"]:
@@ -581,7 +581,9 @@ def play_aidungeon_2():
 
                     action = first_to_second_person(action)
 
-                    action = "\n> " + action + "\n"
+                    action = "> " + action
+
+                action = "\n" + action + "\n"
 
                 if "say" in action or "ask" in action or "\"" in action:
                     story_manager.generator.generate_num = 120
