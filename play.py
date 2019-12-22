@@ -564,16 +564,16 @@ def play_aidungeon_2():
 
             else:
                 if action == "":
-                    action = "\n> \n"
+                    action = "> "
                     
                 elif action[0] == '!':
-                    action = "\n> \n" + action[1:].replace("\\n", "\n") + "\n"
+                    action = "> \n" + action[1:].replace("\\n", "\n")
 
                 elif action[0] != '"':
                     action = action.strip()
                     if not action.lower().startswith("you ") and not action.lower().startswith("i "):
                         action = "You " + action
-                        
+
                     action = action[0].lower() + action[1:]
 
                     if action[-1] not in [".", "?", "!"]:
@@ -581,7 +581,9 @@ def play_aidungeon_2():
 
                     action = first_to_second_person(action)
 
-                    action = "\n> " + action + "\n"
+                    action = "> " + action
+
+                action = "\n" + action + "\n"
 
                 if "say" in action or "ask" in action or "\"" in action:
                     story_manager.generator.generate_num = 120
