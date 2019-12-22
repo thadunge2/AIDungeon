@@ -279,9 +279,9 @@ def play_aidungeon_2():
                             result = story_manager.load_from_storage(load_ID)
                             if result is not None:
                                 print('encryption set (disable with /encrypt)')
-                                print(result)
+                                console_print(result)
                 else:
-                    print(result)
+                    console_print(result)
 
                 if story_manager.story is None:
                     console_print("File not found, or invalid password")
