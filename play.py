@@ -250,7 +250,10 @@ def play_aidungeon_2():
                     if generator_config.lower() == "y":
                         try:
                             model_name = input("Model name: ")
-                            use_raw = input("Use raw narrative text as input for this model? (y/N) ")
+                            console_print("Use raw narrative text as input for this model instead of CYOA prompts?")
+                            console_print("Example user input in raw mode: He took the beast by the horns and ripped out its eyes.")
+                            console_print("Example user input in regular mode: > Take beast by horns and rip out its eyes.")
+                            use_raw = input("y/N ")
                             print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
                             generator = GPT2Generator(model_name=model_name, raw=use_raw.lower()=="y")
                         except:
