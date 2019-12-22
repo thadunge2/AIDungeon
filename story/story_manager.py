@@ -8,6 +8,7 @@ from story.utils import *
 import atexit
 
 from cryptography.fernet import Fernet, InvalidToken
+import base64
 
 save_path = "./saves/"
 
@@ -120,7 +121,8 @@ class StoryManager:
         self.cloud = cloud
         self.upload_story = upload_story
         self.encryptor = None
-        atexit.register(self.on_exit)
+        self.salt = None
+        atexit.register(self.print_save)
 
     def start_new_story(
         self, story_prompt, context="", game_state=None, upload_story=False
@@ -143,6 +145,15 @@ class StoryManager:
             self.story = story
         return str(story)
 
+    def load_salt(self, story_id):
+        file_name = "story" + story_id + ".bin"
+        exists = os.path.isfile(os.path.join(save_path, file_name))
+        if exists:
+            with open(os.path.join(save_path, file_name), "rb") as fp:
+                story_encrypted = fp.read()
+                return base64.urlsafe_b64decode(story_encrypted[:44])
+        return None
+
     def load_from_storage(self, story_id):
         if not os.path.exists(save_path):
             return None
@@ -153,13 +164,12 @@ class StoryManager:
             os.system(cmd)
 
         exists = os.path.isfile(os.path.join(save_path, file_name))
-
         if exists:
             if self.encryptor is not None:
                 with open(os.path.join(save_path, file_name), "rb") as fp:
                     story_encrypted = fp.read()
                     try:
-                        story_decrypted = self.encryptor.decrypt(story_encrypted)
+                        story_decrypted = self.encryptor.decrypt(story_encrypted[44:])
                     except InvalidToken:
                         return None
                     game = json.loads(story_decrypted.decode())
@@ -196,7 +206,7 @@ class StoryManager:
             story_encrypted = self.encryptor.encrypt(story_encoded)
             file_name = "story" + str(story_id) + ".bin"
             with open(os.path.join(save_path, file_name), "wb") as sf:
-                sf.write(story_encrypted)
+                sf.write(base64.urlsafe_b64encode(self.salt) + story_encrypted)
         else:
             file_name = "story" + str(story_id) + ".json"
             with open(os.path.join(save_path, file_name), "w") as sf:
@@ -211,16 +221,18 @@ class StoryManager:
             )
         return story_id
 
-    def set_encryption(self, key):
+    def set_encryption(self, key, salt=""):
         if key is None:
             self.encryptor = None
+            self.salt = None
         else:
             self.encryptor = Fernet(key)
+            self.salt = salt
 
     def has_encryption(self):
         return self.encryptor is not None
 
-    def on_exit(self):
+    def print_save(self):
         if self.upload_story:
             story_id = self.save_story()
             console_print("Game saved.")
@@ -247,11 +259,11 @@ class UnconstrainedStoryManager(StoryManager):
     def generate_result(self, action):
         block = self.generator.generate(self.story_context() + action)
         return block
-		
+        
     def set_context(self, context):
         self.story.context = context
     def get_context(self):
-        return self.story.context		
+        return self.story.context       
 
 
 class ConstrainedStoryManager(StoryManager):

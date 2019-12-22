@@ -310,3 +310,115 @@ def second_to_first_person(text):
             text = replace_outside_quotes(text, variation[0], variation[1])
 
     return capitalize_first_letters(text[1:])
+
+
+def string_to_sentence_list(text):
+    text = "    " + text + "     "
+    text = text.replace("\n", "<stop><break><stop>")
+    text = re.sub("(Mr|St|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|Mt)(\.)", "\\1<prd>", text)
+    text = re.sub("(Inc|Ltd|Jr|Sr|Co)(\.)([\s\"\',])*(?=[a-z])", "\\1<prd>\\2", text)
+    text = re.sub("(\s)([A-Za-z])(\.)", "\\1\\2<prd>", text)
+    text = re.sub("([A-Za-z0-9])(\.)(?![\s\"\'\.])", "\\1<prd>", text)
+    text = re.sub("<prd>([A-Za-z])(\.)([\s\"\',])*(?=[a-z])", "<prd>\\1<prd>\\3", text)
+    text = re.sub("([\.!\?])([\"\'])([\.,])?", "\\1\\2\\3<stop>", text)
+    text = re.sub("([\.!\?])([^\"\'\.!\?])", "\\1<stop>\\2", text)
+    text = text.replace("<prd>",".")
+    text = re.sub("(<stop>)(\s)*(<stop>)*(\s)*(<stop>)*","<stop>",text)
+    sentences = text.split("<stop>")
+    if sentences[-1] == "":
+        del sentences[-1]
+    sentences = [s.strip() for s in sentences]
+    return sentences
+
+
+def string_edit(text):
+    text = text.strip()
+    sentences = string_to_sentence_list(text)
+    new_sentences = []
+    for i in range(len(sentences) - 1):
+        if len(sentences[i]) + len(sentences[i+1]) < 40 and sentences[i] != "<break>" and sentences[i+1] != "<break>":
+            merged_sentence = sentences[i] + " " + sentences[i+1]
+            print(merged_sentence)
+            new_sentences.append(merged_sentence)
+            sentences[i+1] = ""
+        else:
+            if sentences[i] != "":
+                new_sentences.append(sentences[i])
+    if sentences[-1] != "":
+        new_sentences.append(sentences[-1])
+    sentences = new_sentences
+    sentence_choices = []
+    for i in sentences:
+        if i != "<break>":
+            sentence_choices.append(i)
+
+    console_print(text)
+    if len(sentence_choices) == 0:
+        console_print("No text to edit. Would you like to write something?\n0) Write new text\n1) Cancel\n")
+        choice = get_num_options(2)
+        if choice == 0:
+            choice = 3
+        else:
+            choice = 4
+    else:
+        console_print("\n0) Edit a sentence\n1) Remove a sentence\n2) Add a new sentence\n3) Rewrite all\n4) Cancel\n")
+        choice = get_num_options(5)
+
+    if choice == 0:
+        console_print("Pick a sentence to edit:\n")
+        for i in range(len(sentence_choices)):
+            console_print(str(i) + ") " + sentence_choices[i])
+        console_print(str(len(sentence_choices)) + ") Cancel")
+        choice = get_num_options(len(sentence_choices) + 1)
+        while choice != len(sentence_choices):
+            console_print("\n" + sentence_choices[choice])
+            new_sentence = input("\nWrite the new sentence:\n")
+            new_sentence = new_sentence.strip()
+            new_sentence = new_sentence.replace("  ", " ")
+            if new_sentence != "":
+                if new_sentence[-1] not in [".", "!", "?", ",", "\"", "\'"]:
+                    new_sentence += "."
+                sentence_choices[choice] = new_sentence
+            for i in range(len(sentence_choices)):
+                console_print(str(i) + ") " + sentence_choices[i])
+            console_print(str(len(sentence_choices)) + ") Cancel")
+            choice = get_num_options(len(sentence_choices) + 1)
+    elif choice == 1:
+        console_print("Pick a sentence to remove:\n")
+        for i in range(len(sentence_choices)):
+            console_print(str(i) + ") " + sentence_choices[i])
+        console_print(str(len(sentence_choices)) + ") Cancel")
+        choice = get_num_options(len(sentence_choices) + 1)
+        while choice != len(sentence_choices):
+            sentence_choices[choice] = ""
+            console_print("\n")
+            for i in range(len(sentence_choices)):
+                if sentence_choices[i] != "":
+                    console_print(str(i) + ") " + sentence_choices[i])
+            console_print(str(len(sentence_choices)) + ") Cancel")
+            choice = get_num_options(len(sentence_choices) + 1)
+    elif choice == 2:
+        new_sentence = input("Write a new sentence:\n")
+        new_sentence = new_sentence.strip()
+        new_sentence = new_sentence.replace("  ", " ")
+        if new_sentence != "":
+            if new_sentence[-1] not in [".", "!", "?", ",", "\"", "\'"]:
+                new_sentence += "."
+            sentences.append("")
+            sentence_choices.append(new_sentence)
+    elif choice == 3:
+        new_text = (input("Enter the new text (use \\n for new line):\n"))
+        new_text = new_text.replace("  ", " ")
+        new_text = new_text.replace("\\n", "\n")
+        return new_text
+    else:
+        console_print("Cancelled.\n")
+        return
+    new_text = ""
+    for i in range(len(sentences)):
+        if sentences[i] == "<break>":
+            new_text = new_text + "\n"
+        else:
+            new_text = new_text + sentence_choices[i - (sentences[0:i].count("<break>"))] + " "
+    new_text = new_text.strip()
+    return new_text
