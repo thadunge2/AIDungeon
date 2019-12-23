@@ -25,9 +25,10 @@ class GPT2Generator:
         
         self.seed = int(round(time.time()))
         self.initialize_seed()
+        self.device = torch.device("cuda" if torch.cuda.is_available() and not self.no_cuda else "cpu")
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
         self.model = GPT2LMHeadModel.from_pretrained(self.checkpoint_path)
-        self.model.to(torch.device("cuda" if torch.cuda.is_available() and not self.no_cuda else "cpu"))
+        self.model = self.model.to(self.device)
 
     def prompt_replace(self, prompt):
         # print("\n\nBEFORE PROMPT_REPLACE:")
@@ -76,7 +77,7 @@ class GPT2Generator:
             prompt = self.cut_down_prompt(prompt)
         print("Prompt: {}".format(prompt))
         cursor = len(prompt)
-        context_tokens = self.tokenizer.encode(prompt, add_special_tokens=False, return_tensors='pt')
+        context_tokens = self.tokenizer.encode(prompt, add_special_tokens=False, return_tensors='pt').to(self.device)
         new_prompt = self.model.generate(input_ids = context_tokens,
                                         max_length = cursor + self.generate_num,
                                         temperature = self.temp,
