@@ -178,7 +178,7 @@ def instructions():
     text += '\n or just "(thing you want to say)"'
     text += '\n'
     text += '\n If you want something to happen or be done by someone else, enter '
-    text += '\n \'!(thing you want to happen)'
+    text += '\n \'!(thing you want to happen.\\n other thing on a new line.)'
     text += '\n ex. "!A dragon swoops down and eats Sir Theo."'
     text += '\n'
     text += "\nThe following commands can be entered for any action: "
@@ -204,7 +204,7 @@ def instructions():
     text += '\n  "/temp #.#"       Changes the AI\'s temperature'
     text += '\n                    (higher temperature = less focused). Default is 0.4.'
     text += '\n  "/top ##"         Changes the AI\'s top_p. Default is 0.9.'
-    text += '\n  "/raw off/on"     Changes whether to feed the AI raw text instead of CYOA (default off)'
+    text += '\n  "/raw off/on"     Changes whether to feed the AI raw text instead of CYOA, interprets \\n as newline. (default off).'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
     text += '\n  "/context"        Edit what your AI has currently committed to memory.'
     return text
@@ -251,7 +251,7 @@ def play_aidungeon_2():
                         try:
                             model_name = input("Model name: ")
                             console_print("Use raw narrative text as input for this model instead of CYOA prompts?")
-                            console_print("Example user input in raw mode: He took the beast by the horns and ripped out its eyes.")
+                            console_print("Example user input in raw mode: He took the beast by the horns and ripped out its eyes.\\n In the distance, a horn sounded.")
                             console_print("Example user input in regular mode: > Take beast by horns and rip out its eyes.")
                             use_raw = input("y/N ")
                             print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
@@ -623,6 +623,8 @@ def play_aidungeon_2():
 
                     if "say" in action or "ask" in action or "\"" in action:
                         story_manager.generator.generate_num = 120
+                    else:
+                        action = action.replace("\\n", "\n")
                     
                 try:
                     result = "\n" + story_manager.act_with_timeout(action)

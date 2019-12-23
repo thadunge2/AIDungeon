@@ -267,6 +267,8 @@ class StoryManager:
 
 class UnconstrainedStoryManager(StoryManager):
     def act(self, action_choice):
+        if self.generator.raw:
+            action_choice = " " + action_choice + " "
         result = self.generate_result(action_choice)
         self.story.add_to_story(action_choice, result)
         return result
