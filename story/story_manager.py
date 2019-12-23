@@ -268,7 +268,13 @@ class StoryManager:
 class UnconstrainedStoryManager(StoryManager):
     def act(self, action_choice):
         if self.generator.raw:
-            action_choice = " " + action_choice + " "
+            if len(action_choice) > 0:
+                if not action_choice[-1].isspace():
+                    action_choice = action_choice + " "
+                if not action_choice[0].isspace():
+                    action_choice = " " + action_choice
+            else:
+                action_choice = " "
         result = self.generate_result(action_choice)
         self.story.add_to_story(action_choice, result)
         return result
