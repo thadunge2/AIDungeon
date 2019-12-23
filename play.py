@@ -623,8 +623,8 @@ def play_aidungeon_2():
 
                     if "say" in action or "ask" in action or "\"" in action:
                         story_manager.generator.generate_num = 120
-                    else:
-                        action = action.replace("\\n", "\n")
+                else:
+                    action = action.replace("\\n", "\n")
                     
                 try:
                     result = "\n" + story_manager.act_with_timeout(action)
