@@ -4,9 +4,9 @@ numpy
 profanityfilter
 pyyaml
 regex
-tensorflow==2.0.0
 torch
 func_timeout
 playsound
 tracery
 cryptography
+transformers
