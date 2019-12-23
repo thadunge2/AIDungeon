@@ -654,7 +654,7 @@ def prepare_aidungeon_2():
     from cryptography.hazmat.backends import default_backend
     import base64
     import getpass
-    import transformers
+    from transformers.convert_gpt2_original_tf_checkpoint_to_pytorch import convert_gpt2_checkpoint_to_pytorch
     import torch
     
     if not os.path.exists(os.path.join("generator","gpt2","models","model_v5")):
@@ -668,7 +668,7 @@ def prepare_aidungeon_2():
     if not os.path.exists(os.path.join("generator","gpt2","models","model_v5","pytorch-convert")):
         print("Still using Tensorflow? No problem. Let us upgrade that for you.\nPlease wait...")
         os.makedirs(os.path.join("generator","gpt2","models","model_v5","pytorch-convert"))
-        transformers.convert_gpt2_checkpoint_to_pytorch(os.path.join("generator","gpt2","models","model_v5"),
+        convert_gpt2_checkpoint_to_pytorch(os.path.join("generator","gpt2","models","model_v5"),
                                                         os.path.join("generator","gpt2","gpt2-config.json"),
                                                         os.path.join("generator","gpt2","models","model_v5","pytorch-convert"))
         print("All done! You're now set up to use Torch + Transformers.\n\n")
