@@ -4,12 +4,88 @@ import warnings
 import time
 
 import torch
+import torch.nn.functional as F
 import numpy as np
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers.modeling_utils import top_k_top_p_filtering
+import logging
 from story.utils import *
 
 warnings.filterwarnings("ignore")
+logging.getLogger("transformers.tokenization_utils").setLevel(logging.WARN)
+logging.getLogger("transformers.modeling_utils").setLevel(logging.WARN)
+logging.getLogger("transformers.configuration_utils").setLevel(logging.WARN)
 
+class GPT2LMHeadWPastModel(GPT2LMHeadModel):
+    def prepare_inputs_for_generation(self, input_ids, past=None, **kwargs):
+        return {"input_ids": input_ids, 'past': past}
+    
+    def _generate_no_beam_search(
+        self,
+        input_ids,
+        cur_len,
+        max_length,
+        do_sample,
+        temperature,
+        top_k,
+        top_p,
+        repetition_penalty,
+        pad_token_id,
+        eos_token_ids,
+        batch_size,
+    ):
+        """ Generate sequences for each example without beam search (num_beams == 1).
+            All returned sequence are generated independantly.
+        """
+        # current position / max lengths / length of generated sentences / unfinished sentences
+        unfinished_sents = input_ids.new(batch_size).fill_(1)
+
+        past = None
+
+        while cur_len < max_length:
+            if past is not None:
+                model_inputs = self.prepare_inputs_for_generation(tokens_to_add.unsqueeze(-1), past=past)
+            else:
+                model_inputs = self.prepare_inputs_for_generation(input_ids, past=past)
+            outputs = self(**model_inputs)
+            next_token_logits = outputs[0][:, -1, :]
+            past = outputs[1]
+
+            # repetition penalty from CTRL paper (https://arxiv.org/abs/1909.05858)
+            if repetition_penalty != 1.0:
+                for i in range(batch_size):
+                    for previous_tokens in set(input_ids[i].tolist()):
+                        next_token_logits[i, previous_tokens] /= repetition_penalty
+
+            if do_sample:
+                # Temperature (higher temperature => more likely to sample low probability tokens)
+                if temperature > 0 and temperature != 1.0:
+                    next_token_logits = next_token_logits / temperature
+                # Top-p/top-k filtering
+                next_token_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k, top_p=top_p)
+                # Sample
+                next_token = torch.multinomial(F.softmax(next_token_logits, dim=-1), num_samples=1).squeeze(1)
+            else:
+                # Greedy decoding
+                next_token = torch.argmax(next_token_logits, dim=-1)
+
+            # update generations and finished sentences
+            tokens_to_add = next_token * unfinished_sents + pad_token_id * (1 - unfinished_sents)
+            input_ids = torch.cat([input_ids, tokens_to_add.unsqueeze(-1)], dim=-1)
+            for eos_token_id in eos_token_ids:
+                unfinished_sents.mul_(tokens_to_add.ne(eos_token_id).long())
+            cur_len = cur_len + 1
+
+            # stop when there is a </s> in each sentence, or if we exceed the maximul length
+            if unfinished_sents.max() == 0:
+                break
+
+        # add eos_token_ids to unfinished sentences
+        if cur_len == max_length:
+            input_ids[:, -1].masked_fill_(unfinished_sents.to(dtype=torch.bool), eos_token_ids[0])
+
+        return input_ids
+    
 class GPT2Generator:
     def __init__(self, generate_num=80, temperature=0.4, top_p=0.9, censor=False, no_cuda=False):
         self.generate_num = generate_num
@@ -27,7 +103,7 @@ class GPT2Generator:
         self.initialize_seed()
         self.device = torch.device("cuda" if torch.cuda.is_available() and not self.no_cuda else "cpu")
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
-        self.model = GPT2LMHeadModel.from_pretrained(self.checkpoint_path)
+        self.model = GPT2LMHeadWPastModel.from_pretrained(self.checkpoint_path)
         self.model = self.model.to(self.device)
 
     def prompt_replace(self, prompt):
