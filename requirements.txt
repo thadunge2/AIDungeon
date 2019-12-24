@@ -4,7 +4,8 @@ numpy
 profanityfilter
 pyyaml
 regex
-tensorflow==2.0.0
+# can change this to >2.3.0 when released
+git+https://github.com/huggingface/transformers.git@072750f4dc4f586cb53f0face4b4a448bb0cdcac
 torch
 func_timeout
 playsound
