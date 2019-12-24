@@ -197,6 +197,8 @@ class StoryManager:
                 changed = changed or self.generator.change_top_p(game["top_p"])
             if "temp" in game.keys():
                 changed = changed or self.generator.change_temp(game["temp"])
+            if "raw" in game.keys():
+                self.generator.change_raw(game["raw"])
             if changed:
                 console_print("Please wait while the AI model is regenerated...")
                 self.generator.gen_output()
@@ -210,6 +212,7 @@ class StoryManager:
         story_dict = self.story.to_dict()
         story_dict["top_p"] = self.generator.top_p
         story_dict["temp"] = self.generator.temp
+        story_dict["raw"] = self.generator.raw
         story_dict["model"] = self.generator.model_name
 
         if not os.path.exists(save_path):
@@ -264,6 +267,14 @@ class StoryManager:
 
 class UnconstrainedStoryManager(StoryManager):
     def act(self, action_choice):
+        if self.generator.raw:
+            if len(action_choice) > 0:
+                if not action_choice[-1].isspace():
+                    action_choice = action_choice + " "
+                if not action_choice[0].isspace():
+                    action_choice = " " + action_choice
+            else:
+                action_choice = " "
         result = self.generate_result(action_choice)
         self.story.add_to_story(action_choice, result)
         return result

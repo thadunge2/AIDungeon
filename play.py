@@ -178,7 +178,7 @@ def instructions():
     text += '\n or just "(thing you want to say)"'
     text += '\n'
     text += '\n If you want something to happen or be done by someone else, enter '
-    text += '\n \'!(thing you want to happen)'
+    text += '\n \'!(thing you want to happen.\\n other thing on a new line.)'
     text += '\n ex. "!A dragon swoops down and eats Sir Theo."'
     text += '\n'
     text += "\nThe following commands can be entered for any action: "
@@ -204,6 +204,7 @@ def instructions():
     text += '\n  "/temp #.#"       Changes the AI\'s temperature'
     text += '\n                    (higher temperature = less focused). Default is 0.4.'
     text += '\n  "/top ##"         Changes the AI\'s top_p. Default is 0.9.'
+    text += '\n  "/raw off/on"     Changes whether to feed the AI raw text instead of CYOA, interprets \\n as newline. (default off).'
     text += '\n  "/remember XXX"   Commit something important to the AI\'s memory for that session.'
     text += '\n  "/context"        Edit what your AI has currently committed to memory.'
     return text
@@ -248,8 +249,13 @@ def play_aidungeon_2():
                     generator_config = input("Would you like to select a different generator? (default: model_v5) (y/N) ")
                     if generator_config.lower() == "y":
                         try:
+                            model_name = input("Model name: ")
+                            console_print("Use raw narrative text as input for this model instead of CYOA prompts?")
+                            console_print("Example user input in raw mode: He took the beast by the horns and ripped out its eyes.\\n In the distance, a horn sounded.")
+                            console_print("Example user input in regular mode: > Take beast by horns and rip out its eyes.")
+                            use_raw = input("y/N ")
                             print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
-                            generator = GPT2Generator(model_name=input("Model name: "))
+                            generator = GPT2Generator(model_name=model_name, raw=use_raw.lower()=="y")
                         except:
                             console_print("Failed to set model. Make sure it is installed in generator/gpt2/models/")
                             continue
@@ -371,6 +377,7 @@ def play_aidungeon_2():
                     text += "\ntemperature is set to: " + str(story_manager.generator.temp)
                     text += "\ntop_p is set to:       " + str(story_manager.generator.top_p)
                     text += "\ncurrent model is:      " + story_manager.generator.model_name
+                    text += "\nraw is set to:         " + str(story_manager.generator.raw)
                     print(text)
 
                 elif command == "censor":
@@ -504,6 +511,24 @@ def play_aidungeon_2():
                         except ValueError:
                             console_print("Failed to set top_p. Example usage: /top 0.9")
                             continue
+
+                elif command == "raw":
+                    if len(args) == 0:
+                        console_print("Raw input is " + ("enabled." if story_manager.generator.raw else "disabled."))
+                    elif args[0] == "off":
+                        if not story_manager.generator.raw:
+                            console_print("Raw input is already disabled.")
+                        else:
+                            story_manager.generator.change_raw(False)
+                            console_print("Raw input is now disabled.")
+                    elif args[0] == "on":
+                        if story_manager.generator.raw:
+                            console_print("Raw input is already enabled.")
+                        else:
+                            story_manager.generator.change_raw(True)
+                            console_print("Raw input is now enabled.")
+                    else:
+                        console_print(f"Invalid argument: {args[0]}")
                 
                 elif command == 'remember':
                     if len(args) == 0:
@@ -575,30 +600,31 @@ def play_aidungeon_2():
                     console_print(f"Unknown command: {command}")
 
             else:
-                if action == "":
-                    action = "> "
+                if not story_manager.generator.raw:
+                    if action == "":
+                        action = "> "
                     
-                elif action[0] == '!':
-                    action = "> \n" + action[1:].replace("\\n", "\n")
+                    elif action[0] == '!':
+                        action = "> \n" + action[1:].replace("\\n", "\n")
 
-                elif action[0] != '"':
-                    action = action.strip()
-                    if not action.lower().startswith("you ") and not action.lower().startswith("i "):
-                        action = "You " + action
+                    elif action[0] != '"':
+                        action = action.strip()
+                        if not action.lower().startswith("you ") and not action.lower().startswith("i "):
+                            action = "You " + action
 
-                    action = action[0].lower() + action[1:]
+                        action = action[0].lower() + action[1:]
 
-                    if action[-1] not in [".", "?", "!"]:
-                        action = action + "."
+                        if action[-1] not in [".", "?", "!"]:
+                            action = action + "."
 
-                    action = first_to_second_person(action)
+                        action = "> " + first_to_second_person(action)
 
-                    action = "> " + action
+                    action = "\n" + action + "\n"
 
-                action = "\n" + action + "\n"
-
-                if "say" in action or "ask" in action or "\"" in action:
-                    story_manager.generator.generate_num = 120
+                    if "say" in action or "ask" in action or "\"" in action:
+                        story_manager.generator.generate_num = 120
+                else:
+                    action = action.replace("\\n", "\n")
                     
                 try:
                     result = "\n" + story_manager.act_with_timeout(action)
