@@ -207,7 +207,7 @@ class StoryManager:
             return None
 
     def save_story(self, name=None):
-        story_id = str(uuid.uuid1()) if name is None else ("_" + name)
+        story_id = str(uuid.uuid1()) if name is None else name
         self.story.uuid = story_id
         story_dict = self.story.to_dict()
         story_dict["top_p"] = self.generator.top_p
