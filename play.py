@@ -192,7 +192,7 @@ def instructions():
     text += '\n  "/cloud off/on"   Turns off and on cloud saving when you use the "save" command'
     text += '\n  "/saving off/on"  Turns off and on saving'
     text += '\n  "/encrypt"        Turns on encryption when saving and loading'
-    text += '\n  "/save"           Makes a new save of your game and gives you the save ID'
+    text += '\n  "/save [name]"    Makes a new save of your game and gives you the save ID (if no name was supplied)'
     text += '\n  "/load"           Asks for a save ID and loads the game if the ID is valid'
     text += '\n  "/print"          Prints a transcript of your adventure'
     text += '\n  "/help"           Prints these instructions again'
@@ -443,8 +443,11 @@ def play_aidungeon_2():
                         console_print(result)
 
                 elif command == "save":
+                    name = None
+                    if len(args) == 1:
+                        name = args[0]
                     if upload_story:
-                        save_id = story_manager.save_story()
+                        save_id = story_manager.save_story(name)
                         console_print("Game saved.")
                         console_print(f"To load the game, type 'load' and enter the following ID: {save_id}")
                     else:
