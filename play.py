@@ -382,7 +382,6 @@ def play_aidungeon_2():
                         else:
                             autosave = False
                             console_print("Autosaving is now disabled.")
-
                     elif args[0] == "on":
                         if autosave:
                             console_print("Autosaving is already enabled.")
