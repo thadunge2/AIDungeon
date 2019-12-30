@@ -155,18 +155,20 @@ class StoryManager:
                 return base64.urlsafe_b64decode(story_encrypted[:44])
         return None
 
-    def load_from_storage(self, story_id):
+    def load_from_storage(self, story_id, decrypt=True):
         if not os.path.exists(save_path):
             return None
+        
+        decrypt = decrypt and self.encryptor is not None
 
-        file_name = "story" + story_id + (".json" if self.encryptor is None else ".bin")
+        file_name = "story" + story_id + (".bin" if decrypt else ".json")
         if self.cloud:
             cmd = "gsutil cp gs://aidungeonstories/" + file_name + " " + save_path
             os.system(cmd)
 
         exists = os.path.isfile(os.path.join(save_path, file_name))
         if exists:
-            if self.encryptor is not None:
+            if decrypt:
                 with open(os.path.join(save_path, file_name), "rb") as fp:
                     story_encrypted = fp.read()
                     try:
@@ -185,6 +187,7 @@ class StoryManager:
                     if self.generator.model_name != game["model"]:
                         console_print("Warning: Save was generated using the model " + game["model"] + "; load this save in a new session to use this model.")
                 else:
+                    console_print("Generating model (This might take a few minutes)"
                     try:
                         self.generator = GPT2Generator(model_name=game["model"])
                     except:

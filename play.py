@@ -440,6 +440,8 @@ def play_aidungeon_2():
                             password = getpass.getpass("Enter the password you saved this file with: ")
                             story_manager.set_encryption(salt_password(password, salt)[0], salt)
                             result = story_manager.load_from_storage(load_ID)
+                        else:
+                            result = story_manager.load_from_storage(load_ID, decrypt=False)
 
                     if result is None:
                         console_print("File not found, or invalid encryption password set")
