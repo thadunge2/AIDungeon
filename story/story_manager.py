@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import uuid
+import copy
 from subprocess import Popen
 
 from story.utils import *
@@ -209,10 +210,19 @@ class StoryManager:
         else:
             return None
 
-    def save_story(self, name=None):
-        story_id = str(uuid.uuid1()) if name is None else name
-        self.story.uuid = story_id
-        story_dict = self.story.to_dict()
+    def save_story(self, name=None, overwrite=True):
+        if self.story.uuid is None:
+            self.story.uuid = str(uuid.uuid1())
+
+        if name:
+            story_id = name
+            overwrite = False
+        else:
+            story_id = self.story.uuid if overwrite else str(uuid.uuid1())
+
+        saved_story = self.story if overwrite else copy.copy(self.story)
+        saved_story.uuid = story_id
+        story_dict = saved_story.to_dict()
         story_dict["top_p"] = self.generator.top_p
         story_dict["temp"] = self.generator.temp
         story_dict["raw"] = self.generator.raw
