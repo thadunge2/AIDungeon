@@ -187,7 +187,7 @@ class StoryManager:
                     if self.generator.model_name != game["model"]:
                         console_print("Warning: Save was generated using the model " + game["model"] + "; load this save in a new session to use this model.")
                 else:
-                    console_print("Generating model (This might take a few minutes)"
+                    console_print("Generating model (This might take a few minutes)")
                     try:
                         self.generator = GPT2Generator(model_name=game["model"])
                     except:
