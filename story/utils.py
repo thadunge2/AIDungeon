@@ -2,7 +2,10 @@
 import re
 from difflib import SequenceMatcher
 
-import readline
+try:
+	import readline
+except ModuleNotFoundError:
+	pass
 import yaml
 from profanityfilter import ProfanityFilter
 from func_timeout import func_timeout, FunctionTimedOut
