@@ -2,6 +2,7 @@
 import re
 from difflib import SequenceMatcher
 
+import readline
 import yaml
 from profanityfilter import ProfanityFilter
 from func_timeout import func_timeout, FunctionTimedOut
