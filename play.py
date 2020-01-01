@@ -196,7 +196,8 @@ def instructions():
     text += '\n  "/cloud off/on"   Turns off and on cloud saving when you use the "save" command'
     text += '\n  "/saving off/on"  Turns off and on saving'
     text += '\n  "/encrypt"        Turns on encryption when saving and loading'
-    text += '\n  "/save [name]"    Makes a new save of your game and gives you the save ID (if no name was supplied)'
+    text += '\n  "/autosave"       Toggle autosave on and off. Default is off.'
+    text += '\n  "/save [name]"    Save your current game or create a new save if name was supplied'
     text += '\n  "/load"           Asks for a save ID and loads the game if the ID is valid'
     text += '\n  "/print"          Prints a transcript of your adventure'
     text += '\n  "/help"           Prints these instructions again'
@@ -224,6 +225,7 @@ def play_aidungeon_2():
     upload_story = True
     ping = False
     generator = None
+    autosave = False
     story_manager = UnconstrainedStoryManager(generator, upload_story=upload_story, cloud=False)
     print("\n")
 
@@ -309,6 +311,8 @@ def play_aidungeon_2():
                     story_manager.set_encryption(None)
 
         while True:
+            if autosave and upload_story:
+                story_manager.save_story()
             sys.stdin.flush()
             action = input("\n> ").strip()
             if len(action) > 0 and action[0] == "/":
@@ -369,6 +373,24 @@ def play_aidungeon_2():
                         story_manager.set_encryption(password, salt)
                         console_print("Updated password for encryption/decryption.")
 
+                elif command == "autosave":
+                    if len(args) == 0:
+                        console_print("Autosaving is " + ("enabled." if autosave else "disabled."))
+                    elif args[0] == "off":
+                        if not autosave:
+                            console_print("Autosaving is already disabled.")
+                        else:
+                            autosave = False
+                            console_print("Autosaving is now disabled.")
+                    elif args[0] == "on":
+                        if autosave:
+                            console_print("Autosaving is already enabled.")
+                        else:
+                            autosave = True
+                            console_print("Autosaving is now enabled.")
+                    else:
+                        console_print(f"Invalid argument: {args[0]}")
+
                 elif command == "help":
                     console_print(instructions())
 
@@ -376,6 +398,7 @@ def play_aidungeon_2():
                     text = "saving is set to:      " + str(upload_story)
                     text += "\ncloud saving is set to:" + str(story_manager.cloud)
                     text += "\nencryption is set to:  " + str(story_manager.has_encryption())
+                    text += "\nautosaving is set to:  " + str(autosave)
                     text += "\nping is set to:        " + str(ping)
                     text += "\ncensor is set to:      " + str(story_manager.generator.censor)
                     text += "\ntemperature is set to: " + str(story_manager.generator.temp)
@@ -449,11 +472,17 @@ def play_aidungeon_2():
                         console_print(result)
 
                 elif command == "save":
-                    name = None
-                    if len(args) == 1:
-                        name = args[0]
                     if upload_story:
-                        save_id = story_manager.save_story(name)
+                        if len(args) == 0:
+                            print("Create a new save, or overwrite the current save?")
+                            print("0) New save\n1) Overwrite current save\n")
+                            choice = get_num_options(2)
+                            name = None
+                            overwrite = (choice == 1)
+                        else:
+                            name = args[0]
+                            overwrite = False
+                        save_id = story_manager.save_story(name, overwrite)
                         console_print("Game saved.")
                         console_print(f"To load the game, type 'load' and enter the following ID: {save_id}")
                     else:
