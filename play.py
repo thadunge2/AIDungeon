@@ -14,10 +14,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 import base64
 import getpass
-try:
-	import readline
-except ModuleNotFoundError:
-	pass
 
 from banners.bannerRan import *
 
