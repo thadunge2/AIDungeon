@@ -159,7 +159,7 @@ class StoryManager:
     def load_from_storage(self, story_id, decrypt=True):
         if not os.path.exists(save_path):
             return None
-        
+
         decrypt = decrypt and self.encryptor is not None
 
         file_name = "story" + story_id + (".bin" if decrypt else ".json")
@@ -291,15 +291,15 @@ class UnconstrainedStoryManager(StoryManager):
         result = self.generate_result(action_choice)
         self.story.add_to_story(action_choice, result)
         return result
-        
+
     def act_with_timeout(self, action_choice):
         return func_timeout(self.inference_timeout, self.act, (action_choice,))
 
     def generate_result(self, action):
         block = self.generator.generate(self.story_context() + action)
         return block
-        
+
     def set_context(self, context):
         self.story.context = context
     def get_context(self):
-        return self.story.context       
+        return self.story.context

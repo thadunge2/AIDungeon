@@ -42,7 +42,7 @@ class GPT2Generator:
         self.saver = tf.train.Saver()
         ckpt = tf.train.latest_checkpoint(os.path.join(self.model_dir, self.model_name))
         self.saver.restore(self.sess, ckpt)
-        
+
     def prompt_replace(self, prompt):
         # print("\n\nBEFORE PROMPT_REPLACE:")
         # print(repr(prompt))
@@ -60,7 +60,7 @@ class GPT2Generator:
     def result_replace(self, result, actions):
         # print("\n\nBEFORE RESULT_REPLACE:")
         # print(repr(result))
-        
+
         result = result.replace('."', '".')
         result = result.replace("#", "")
         result = result.replace("*", "")
@@ -142,7 +142,7 @@ class GPT2Generator:
                 else:
                     new_text = new_text + " " + sentences[i]
             return new_text.lstrip()
-        
+
     def gen_output(self):
         models_dir = os.path.expanduser(os.path.expandvars(self.model_dir))
         hparams = model.default_hparams()
@@ -158,12 +158,12 @@ class GPT2Generator:
             #top_k=self.top_k,
             top_p=self.top_p,
         )
-        
+
     def change_temp(self, t):
         changed = t != self.temp
         self.temp = t
         return changed
-        
+
     def change_top_p(self, t):
         changed = t != self.top_p
         self.top_p = t
