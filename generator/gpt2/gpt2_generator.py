@@ -72,14 +72,9 @@ class GPT2Generator:
             result = result.replace(sentence.strip()+" ", "")
         if len(result) == 0:
             return ""
-        first_letter_capitalized = result[0].isupper()
         if self.censor:
             result = remove_profanity(result)
 
-        if not first_letter_capitalized:
-            result = result[0].lower() + result[1:]
-
-        #
         # print("\n\nAFTER RESULT_REPLACE:")
         # print(repr(result))
 
