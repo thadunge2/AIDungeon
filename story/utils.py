@@ -102,20 +102,6 @@ def fix_trailing_quotes(text):
         return text + '"'
 
 
-def split_first_sentence(text):
-    first_period = text.find(".")
-    first_exclamation = text.find("!")
-
-    if first_exclamation < first_period and first_exclamation > 0:
-        split_point = first_exclamation + 1
-    elif first_period > 0:
-        split_point = first_period + 1
-    else:
-        split_point = text[0:20]
-
-    return text[0:split_point], text[split_point:]
-
-
 def cut_trailing_action(text):
     lines = text.rstrip().split("\n")
     last_para = re.findall(r".+?(?:\.{1,3}|[!\?]|$)(?!\")", lines[-1])
