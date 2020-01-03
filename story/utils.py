@@ -56,11 +56,11 @@ def player_died(text):
     """
     lower_text = text.lower()
     you_dead_regexps = [
-        "you('re| are) (dead|killed|slain|no more|nonexistent)",
-        "you (die|pass away|perish|suffocate|drown|bleed out)",
-        "you('ve| have) (died|perished|suffocated|drowned|been (killed|slain))",
-        "you (\w* )?(yourself )?to death",
-        "you (\w* )*(collapse|bleed out|chok(e|ed|ing)|drown|dissolve) (\w* )*and (die(|d)|pass away|cease to exist|(\w* )+killed)",
+        r"you('re| are) (dead|killed|slain|no more|nonexistent)",
+        r"you (die|pass away|perish|suffocate|drown|bleed out)",
+        r"you('ve| have) (died|perished|suffocated|drowned|been (killed|slain))",
+        r"you (\w* )?(yourself )?to death",
+        r"you (\w* )*(collapse|bleed out|chok(e|ed|ing)|drown|dissolve) (\w* )*and (die(|d)|pass away|cease to exist|(\w* )+killed)",
     ]
     return any(re.search(regexp, lower_text) for regexp in you_dead_regexps)
 
@@ -68,12 +68,12 @@ def player_died(text):
 def player_won(text):
     lower_text = text.lower()
     won_phrases = [
-        "you ((\w* )*and |)live happily ever after",
-        "you ((\w* )*and |)live (forever|eternally|for eternity)",
-        "you ((\w* )*and |)(are|become|turn into) ((a|now) )?(deity|god|immortal)",
-        "you ((\w* )*and |)((go|get) (in)?to|arrive (at|in)) (heaven|paradise)",
-        "you ((\w* )*and |)celebrate your (victory|triumph)",
-        "you ((\w* )*and |)retire",
+        r"you ((\w* )*and |)live happily ever after",
+        r"you ((\w* )*and |)live (forever|eternally|for eternity)",
+        r"you ((\w* )*and |)(are|become|turn into) ((a|now) )?(deity|god|immortal)",
+        r"you ((\w* )*and |)((go|get) (in)?to|arrive (at|in)) (heaven|paradise)",
+        r"you ((\w* )*and |)celebrate your (victory|triumph)",
+        r"you ((\w* )*and |)retire",
     ]
     return any(re.search(regexp, lower_text) for regexp in won_phrases)
 
@@ -199,9 +199,9 @@ def mapping_variation_pairs(mapping):
     if mapping[0] is "you":
         mapping = ("you", "me")
     mapping_list.append((" " + mapping[0] + ",", " " + mapping[1] + ","))
-    mapping_list.append((" " + mapping[0] + "\?", " " + mapping[1] + "\?"))
-    mapping_list.append((" " + mapping[0] + "\!", " " + mapping[1] + "\!"))
-    mapping_list.append((" " + mapping[0] + "\.", " " + mapping[1] + "."))
+    mapping_list.append((" " + mapping[0] + "\\?", " " + mapping[1] + "\\?"))
+    mapping_list.append((" " + mapping[0] + "\\!", " " + mapping[1] + "\\!"))
+    mapping_list.append((" " + mapping[0] + "\\.", " " + mapping[1] + "."))
 
     return mapping_list
 
@@ -300,15 +300,15 @@ def second_to_first_person(text):
 def string_to_sentence_list(text):
     text = "    " + text + "     "
     text = text.replace("\n", "<stop><break><stop>")
-    text = re.sub("(Mr|St|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|Mt)(\.)", "\\1<prd>", text)
-    text = re.sub("(Inc|Ltd|Jr|Sr|Co)(\.)([\s\"\',])*(?=[a-z])", "\\1<prd>\\2", text)
-    text = re.sub("(\s)([A-Za-z])(\.)", "\\1\\2<prd>", text)
-    text = re.sub("([A-Za-z0-9])(\.)(?![\s\"\'\.])", "\\1<prd>", text)
-    text = re.sub("<prd>([A-Za-z])(\.)([\s\"\',])*(?=[a-z])", "<prd>\\1<prd>\\3", text)
-    text = re.sub("([\.!\?])([\"\'])([\.,])?", "\\1\\2\\3<stop>", text)
-    text = re.sub("([\.!\?])([^\"\'\.!\?])", "\\1<stop>\\2", text)
+    text = re.sub(r"(Mr|St|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|Mt)(\.)", r"\1<prd>", text)
+    text = re.sub(r"(Inc|Ltd|Jr|Sr|Co)(\.)([\s\"\',])*(?=[a-z])", r"\1<prd>\2", text)
+    text = re.sub(r"(\s)([A-Za-z])(\.)", r"\1\2<prd>", text)
+    text = re.sub(r"([A-Za-z0-9])(\.)(?![\s\"\'\.])", r"\1<prd>", text)
+    text = re.sub(r"<prd>([A-Za-z])(\.)([\s\"\',])*(?=[a-z])", r"<prd>\1<prd>\3", text)
+    text = re.sub(r"([\.!\?])([\"\'])([\.,])?", r"\1\2\3<stop>", text)
+    text = re.sub(r"([\.!\?])([^\"\'\.!\?])", r"\1<stop>\2", text)
     text = text.replace("<prd>",".")
-    text = re.sub("(<stop>)(\s)*(<stop>)*(\s)*(<stop>)*","<stop>",text)
+    text = re.sub(r"(<stop>)(\s)*(<stop>)*(\s)*(<stop>)*","<stop>",text)
     sentences = text.split("<stop>")
     if sentences[-1] == "":
         del sentences[-1]
