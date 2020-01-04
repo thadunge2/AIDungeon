@@ -17,9 +17,10 @@ save_path = "./saves/"
 
 class Story:
     def __init__(
-        self, story_start, context="", seed=None, game_state=None
+        self, story_start, story_prompt="", context="", seed=None, game_state=None
     ):
         self.story_start = story_start
+        self.story_prompt = story_prompt
         self.context = context
         self.rating = -1
 
@@ -51,6 +52,10 @@ class Story:
         self.context = story_dict["context"]
         self.uuid = story_dict["uuid"]
 
+        if "story_prompt" in story_dict.keys():
+            self.story_prompt = story_dict["story_prompt"]
+        else:
+            self.story_prompt = ""
         if "rating" in story_dict.keys():
             self.rating = story_dict["rating"]
         else:
@@ -95,6 +100,7 @@ class Story:
         story_dict["choices"] = self.choices
         story_dict["possible_action_results"] = self.possible_action_results
         story_dict["game_state"] = self.game_state
+        story_dict["story_prompt"] = self.story_prompt
         story_dict["context"] = self.context
         story_dict["uuid"] = self.uuid
         story_dict["rating"] = self.rating
@@ -134,6 +140,7 @@ class StoryManager:
         block = cut_trailing_sentence(block)
         self.story = Story(
             context + story_prompt + block,
+            story_prompt=story_prompt,
             context=context,
             game_state=game_state
         )
