@@ -441,7 +441,7 @@ def play_aidungeon_2():
                     if len(args) == 0:
                         load_ID = input("What is the ID of the saved game? (prefix with gs:// if it is a cloud save) ")
                     else:
-                        load_ID = args[0]
+                        load_ID = " ".join(args).strip()
                     console_print("\nLoading Game...\n")
                     if load_ID.startswith("gs://"):
                         story_manager.cloud = True
@@ -470,11 +470,15 @@ def play_aidungeon_2():
                             name = None
                             overwrite = (choice == 1)
                         else:
-                            name = args[0]
+                            name = " ".join(args).strip()
                             overwrite = False
-                        save_id = story_manager.save_story(name, overwrite)
-                        console_print("Game saved.")
-                        console_print(f"To load the game, type 'load' and enter the following ID: {save_id}")
+                        try:
+                            save_id = story_manager.save_story(name, overwrite)
+                            console_print("Game saved.")
+                            console_print(f"To load the game, type 'load' and enter the following ID: {save_id}")
+                        except Exception as e:
+                            print(f"The following error occurred: {e}")
+                            print("Game not saved.")
                     else:
                         console_print("Saving has been turned off. Cannot save.")
 
