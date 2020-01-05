@@ -566,29 +566,29 @@ def play_aidungeon_2():
                         console_print("You make sure to remember {}.".format(" ".join(action.split(" ")[1:])))
 
                 elif command == 'retry':
-
-                    if len(story_manager.story.actions) is 0:
-                        console_print("There is nothing to retry.")
-                        continue
-
-                    last_action = story_manager.story.actions.pop()
-                    last_result = story_manager.story.results.pop()
-
-                    try:
+                    if len(story_manager.story.actions) > 0:
+                        last_action = story_manager.story.actions.pop()
+                        last_result = story_manager.story.results.pop()
                         try:
                             story_manager.act_with_timeout(last_action)
                             console_print(last_action)
                             console_print(story_manager.story.results[-1])
                         except FunctionTimedOut:
                             console_print("That input caused the model to hang (timeout is {}, use infto ## command to change)".format(story_manager.inference_timeout))
+                        except NameError:
+                            pass
+                        finally:
                             if ping:
                                 playsound('ping.mp3')
-                    except NameError:
-                        pass
-                    if ping:
-                        playsound('ping.mp3')
-
-                    continue
+                    else:
+                        # Retry for another story start
+                        block = story_manager.generator.generate(story_manager.story.context + story_manager.story.story_prompt)
+                        block = cut_trailing_sentence(block)
+                        story_manager.start_new_story(
+                            story_prompt=story_manager.story.story_prompt, context=context, upload_story=upload_story
+                        )
+                        print("\n")
+                        console_print(str(story_manager.story))
 
                 elif command == 'context':
                     try:
@@ -607,17 +607,15 @@ def play_aidungeon_2():
                 elif command == 'alter':
                     try:
                         console_print("\nThe AI thinks this was what happened:\n")
-                        try:
-                            current_result = story_manager.story.results[-1]
-                        except IndexError:
-                            current_result = story_manager.story.story_start
+                        current_result = (
+                            story_manager.story.results[-1] if len(story_manager.story.results) > 0
+                            else story_manager.story.story_start
+                        )
                         new_result = string_edit(current_result)
-                        if new_result is None:
-                            pass
-                        else:
-                            try:
+                        if new_result is not None:
+                            if len(story_manager.story.results) > 0:
                                 story_manager.story.results[-1] = new_result
-                            except IndexError:
+                            else:
                                 story_manager.story.story_start = new_result
                             console_print("Result updated.\n")
                     except:
