@@ -178,6 +178,8 @@ def instructions():
     text += '\n                    action.'
     text += '\n  "/retry"          Reverts the last action and tries again with the same action.'
     text += '\n  "/alter"          Edit the most recent AI response'
+    text += '\n  "/altergen"       Edit the beginning of the most recent response and have the'
+    text += '\n                    AI generate the rest'
     text += '\n  "/quit"           Quits the game and saves'
     text += '\n  "/reset"          Starts a new game and saves your current one'
     text += '\n  "/restart"        Starts the game from beginning with same settings'
@@ -618,6 +620,31 @@ def play_aidungeon_2():
                             except IndexError:
                                 story_manager.story.story_start = new_result
                             console_print("Result updated.\n")
+                    except:
+                        console_print("Something went wrong, cancelling.")
+                        pass
+
+                elif command == 'altergen':
+                    try:
+                        if len(story_manager.story.actions) > 0:
+                            # temporarily remove the latest action/result pair
+                            last_action = story_manager.story.actions.pop()
+                            last_result = story_manager.story.results.pop()
+
+                            console_print("\nThe AI thinks this was what happened:\n")
+                            print(last_result)
+
+                            new_result = input("\nEnter the first part of new text (use \\n for new line):\n")
+                            new_result = new_result.replace("\\n", "\n")
+                            new_result += story_manager.generator.generate(
+                                story_manager.story_context() + last_action + new_result
+                            )
+                            story_manager.story.add_to_story(last_action, new_result)
+
+                            console_print(last_action)
+                            console_print(new_result)
+                        else:
+                            console_print("There's no result to alter.\n")
                     except:
                         console_print("Something went wrong, cancelling.")
                         pass
