@@ -306,6 +306,9 @@ class UnconstrainedStoryManager(StoryManager):
         block = self.generator.generate(self.story_context() + action)
         return block
 
+    def generate_with_timeout(self, action):
+        return func_timeout(self.inference_timeout, self.generate_result, (action,))
+
     def set_context(self, context):
         self.story.context = context
     def get_context(self):

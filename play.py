@@ -638,13 +638,16 @@ def play_aidungeon_2():
 
                             new_result = input("\nEnter the first part of new text (use \\n for new line):\n")
                             new_result = new_result.replace("\\n", "\n")
-                            new_result += story_manager.generator.generate(
-                                story_manager.story_context() + last_action + new_result
-                            )
-                            story_manager.story.add_to_story(last_action, new_result)
-
-                            console_print(last_action)
-                            console_print(new_result)
+                            try:
+                                new_result += story_manager.generate_with_timeout(last_action + new_result)
+                                story_manager.story.add_to_story(last_action, new_result)
+                                console_print(last_action)
+                                console_print(new_result)
+                            except FunctionTimedOut:
+                                console_print("That input caused the model to hang (timeout is {}, use infto ## command to change)".format(story_manager.inference_timeout))
+                            finally:
+                                if ping:
+                                    playsound('ping.mp3')
                         else:
                             console_print("There's no result to alter.\n")
                     except:
