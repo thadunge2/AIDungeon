@@ -399,22 +399,22 @@ def play_aidungeon_2():
 
                 elif command == "censor":
                     if len(args) == 0:
-                        if generator.censor:
+                        if story_manager.generator.censor:
                             console_print("Censor is enabled.")
                         else:
                             console_print("Censor is disabled.")
                     elif args[0] == "off":
-                        if not generator.censor:
+                        if not story_manager.generator.censor:
                             console_print("Censor is already disabled.")
                         else:
-                            generator.censor = False
+                            story_manager.generator.censor = False
                             console_print("Censor is now disabled.")
 
                     elif args[0] == "on":
-                        if generator.censor:
+                        if story_manager.generator.censor:
                             console_print("Censor is already enabled.")
                         else:
-                            generator.censor = True
+                            story_manager.generator.censor = True
                             console_print("Censor is now enabled.")
                     else:
                         console_print(f"Invalid argument: {args[0]}")
