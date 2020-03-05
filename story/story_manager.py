@@ -286,7 +286,7 @@ class StoryManager:
 
 
 class UnconstrainedStoryManager(StoryManager):
-    def act(self, action_choice):
+    def act(self, action_choice, should_add_to_story):
         if self.generator.raw:
             if len(action_choice) > 0:
                 if not action_choice[-1].isspace():
@@ -296,11 +296,12 @@ class UnconstrainedStoryManager(StoryManager):
             else:
                 action_choice = " "
         result = self.generate_result(action_choice)
-        self.story.add_to_story(action_choice, result)
+        if should_add_to_story:
+            self.story.add_to_story(action_choice, result)
         return result
 
-    def act_with_timeout(self, action_choice):
-        return func_timeout(self.inference_timeout, self.act, (action_choice,))
+    def act_with_timeout(self, action_choice, should_add_to_story):
+        return func_timeout(self.inference_timeout, self.act, (action_choice, should_add_to_story))
 
     def generate_result(self, action):
         block = self.generator.generate(self.story_context() + action)
